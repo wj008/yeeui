@@ -5,7 +5,7 @@ Yee.config({
     }()),
     modules: {
         //定义模块路径
-        'json': window.JSON ? '' : '../third/json2.js',
+        'json': window.JSON ? '' : '../third/json3.min.js',
         'cookie': '../third/jquery.cookie.js',
     },
     depends: {
