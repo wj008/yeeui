@@ -134,6 +134,9 @@
     })();
     //设置配置
     Yee.config = function (data) {
+        if(data===void 0){
+            return config;
+        }
         if (config == null) {
             config = {version: null, modules: {}, depends: {}};
         }
