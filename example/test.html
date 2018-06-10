@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="../yeeui/js/yee.js"></script>
+
+</head>
+<body>
+<div>
+    使用 yee-module 加载并渲染一个控件
+    number 为 只允许输入数字
+</div>
+<div>
+    <input yee-module="number" />
+</div>
+
+
+<script>
+    //测试使用一个模块
+    //会先加载 yee.config.js ，cookie 模块在 config 文件做配置了路径
+    //然后在加载 ../third/jquery.cookie.js 的路径，加载完成后执行 then 内的函数
+    // Yee 在渲染开始会先隐藏 html 标签，渲染结束后显示 html 标签，如果需要看到界面后才进行操作的，需要放在 ready 函数中。
+    $(function () {
+        Yee.use('cookie').then(function () {
+            console.log($.cookie());
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
