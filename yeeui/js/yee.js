@@ -69,8 +69,7 @@
     var Yee = window.Yee = $.Yee = window.Yee || {};
     //ui版本号
     Yee.version = '1.0.0';
-    //是否已渲染
-    Yee.rendered = false;
+
     //已加载的模块
     Yee.loadedFiles = {};
     //扩展的模块
