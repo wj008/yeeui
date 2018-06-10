@@ -138,7 +138,7 @@
             return config;
         }
         if (config == null) {
-            config = {version: null, modules: {}, depends: {}};
+            config = {version: null, modules: {}, depends: {},dataFormat:null};
         }
         config = $.extend(config, data);
     }
