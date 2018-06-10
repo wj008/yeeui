@@ -10,5 +10,6 @@ Yee.config({
     },
     depends: {
 
-    }
+    },
+    dataFormat:null
 });
