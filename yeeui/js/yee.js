@@ -71,9 +71,9 @@
     Yee.version = '1.0.0';
 
     //已加载的模块
-    Yee.loadedFiles = {};
+    Yee._loadedFiles = {};
     //扩展的模块
-    Yee.extendModules = {};
+    Yee._extendModules = {};
     //解析URL
     Yee.parseUrl = function (url) {
         url = url || '';
@@ -195,12 +195,12 @@
                 if (file == null || file == '') {
                     continue;
                 }
-                if (Yee.loadedFiles[file]) {
-                    var promise = Yee.loadedFiles[file];
+                if (Yee._loadedFiles[file]) {
+                    var promise = Yee._loadedFiles[file];
                     loadMaps.push(promise);
                     continue;
                 }
-                var promise = Yee.loadedFiles[file] = loader(file);
+                var promise = Yee._loadedFiles[file] = loader(file);
                 loadMaps.push(promise);
             }
 
@@ -253,7 +253,7 @@
         for (var i = 0; i < items.length; i++) {
             items[i] += "[yee-module~='" + name + "']";
         }
-        Yee.extendModules[name] = items.join(',');
+        Yee._extendModules[name] = items.join(',');
         // 自动扩展JQ插件
         $.fn[plug] = function (options) {
             this.each(function (idx, elem) {
@@ -284,7 +284,7 @@
                 if (name === '') {
                     continue;
                 }
-                if (tempMaps[name] || Yee.extendModules[name]) {
+                if (tempMaps[name] || Yee._extendModules[name]) {
                     continue;
                 }
                 tempMaps[name] = true;
@@ -293,8 +293,8 @@
             }
         });
         var update = function () {
-            for (var name in Yee.extendModules) {
-                var selector = Yee.extendModules[name];
+            for (var name in Yee._extendModules) {
+                var selector = Yee._extendModules[name];
                 var plug = 'yee_' + name;
                 var items = $(selector, base);
                 if (items.length > 0 && typeof (items[plug]) == 'function') {
