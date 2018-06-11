@@ -134,11 +134,11 @@
     })();
     //设置配置
     Yee.config = function (data) {
-        if(data===void 0){
+        if (data === void 0) {
             return config;
         }
         if (config == null) {
-            config = {version: null, modules: {}, depends: {},dataFormat:null};
+            config = {version: null, modules: {}, depends: {}, dataFormat: null};
         }
         config = $.extend(config, data);
     }
@@ -343,10 +343,10 @@
 
     //扩展JQ功能
     var renderState = 0;//渲染状态
-    var jqInit = $.fn.init; //覆盖jq 的 $(function);
-    $.fn.init = function () {
-        if (renderState == 2 || arguments.length == 0 || typeof(arguments[0]) != 'function') {
-            return jqInit.apply($.fn, arguments);
+    var jqInit = $.fn.ready; //覆盖jq 的 $(function);
+    $.fn.ready = function (fn) {
+        if (renderState == 2) {
+            return jqInit.call(this, fn);
         }
         Yee.ready(arguments[0]);
     }
@@ -417,40 +417,82 @@
     //number 数值输入
     Yee.extend(':input', 'number', function (elem) {
         var that = $(elem);
-        that.on('keydown', function (event) {
-            if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || /^-?([1-9]\d*|0)\.\d+$/.test(this.value)) {
-                $(this).data('last-value', this.value);
+        var numberScale = that.data('numberScale') || -1;
+        var lastValue = '';
+        var reg = null;
+        if (numberScale > 0) {
+            reg = new RegExp('^-?([1-9]\\d*|0)\\.\\d{1,' + numberScale + '}$');
+        }
+        that.on('keydown', function (ev) {
+            if (numberScale < 0) {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || /^-?([1-9]\d*|0)\.\d+$/.test(this.value)) {
+                    lastValue = this.value;
+                }
+            }
+            else if (numberScale == 0) {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value)) {
+                    lastValue = this.value;
+                }
+            }
+            else {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || reg.test(this.value)) {
+                    lastValue = this.value;
+                }
             }
         });
-        that.on('keypress keyup', function (event) {
-            if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || /^-?([1-9]\d*|0)\.\d+$/.test(this.value)) {
-                $(this).data('last-value', this.value);
-                return true;
+        that.on('keypress keyup', function (ev) {
+            if (numberScale < 0) {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || /^-?([1-9]\d*|0)\.\d+$/.test(this.value)) {
+                    lastValue = this.value;
+                    return true;
+                }
             }
-            this.value = $(this).data('last-value') || '';
+            else if (numberScale == 0) {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value)) {
+                    lastValue = this.value;
+                    return true;
+                }
+            }
+            else {
+                if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value) || /^-?([1-9]\d*|0)\.$/.test(this.value) || reg.test(this.value)) {
+                    lastValue = this.value;
+                    return true;
+                }
+            }
+            this.value = lastValue || '';
             return false;
         });
         that.on('dragenter', function () {
             return false;
         });
         that.on('blur', function () {
-            this.value = /^-?([1-9]\d*|0)(\.\d+)?$/.test(this.value) ? this.value : '';
+            if (numberScale < 0) {
+                this.value = /^-?([1-9]\d*|0)(\.\d+)?$/.test(this.value) ? this.value : '';
+            }
+            else if (numberScale == 0) {
+                this.value = /^-?([1-9]\d*|0)$/.test(this.value) ? this.value : '';
+            } else {
+                this.value = reg.test(this.value) ? this.value : '';
+            }
         });
     });
     //integer 整数输入
     Yee.extend(':input', 'integer', function (elem) {
         var that = $(elem);
+        var lastValue = null;
         that.on('keydown', function (event) {
             if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value)) {
-                $(this).data('last-value', this.value);
+                lastValue = this.value;
+                return true;
             }
+            return false;
         });
         that.on('keypress keyup', function (event) {
             if (this.value == '' || this.value == '-' || /^-?([1-9]\d*|0)$/.test(this.value)) {
-                $(this).data('last-value', this.value);
+                lastValue = this.value;
                 return true;
             }
-            this.value = $(this).data('last-value') || '';
+            this.value = lastValue || '';
             return false;
         });
         that.on('dragenter', function () {
