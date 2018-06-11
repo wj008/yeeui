@@ -8,18 +8,8 @@
 </head>
 <body>
 <div>
-    <div><input id="test" type="text"/></div>
     <!--可以使用标签调用 不需要指定id  渲染参数由 data 设置 -->
     <div><input yee-module="after_text" data-text="这里是标签调用" type="text"/></div>
-    <!--这里的渲染会等到整个页面加载后 在渲染-->
 </div>
-<script>
-    //定义插件
-    Yee.extend(':input', 'after_text', function (elem, setting) {
-        $('<span></span>').html(setting.text).insertAfter(elem);
-    });
-    //也可以使用 jQuery 调用，jQuery 时须加 yee_ 前缀
-    $('#test').yee_after_text({text: '这里是jq调用的'});
-</script>
 </body>
 </html>

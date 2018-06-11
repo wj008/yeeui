@@ -176,7 +176,6 @@
                     continue;
                 }
                 var file = module;
-
                 if (!/\.js$/i.test(module)) {
                     if (paths && paths[module]) {
                         file = paths[module];
@@ -184,14 +183,13 @@
                     else if (config.modules[module]) {
                         file = config.modules[module];
                     } else {
-                        if (/^yee-/.test(module)) {
-                            file = module.replace(/^yee-/, 'module/yee.') + '.js';
+                        if (/^yee_/.test(module)) {
+                            file = module.replace(/^yee_/, 'module/yee.') + '.js';
                         } else {
                             console.error('不存在的模块：' + module);
                         }
                     }
                 }
-
                 if (file == null || file == '') {
                     continue;
                 }
@@ -289,7 +287,7 @@
                 }
                 tempMaps[name] = true;
                 var yee_depend = $(this).attr('yee-depend') || null;
-                moduleItems.push({module: 'yee-' + name, file: yee_depend});
+                moduleItems.push({module: 'yee_' + name, file: yee_depend});
             }
         });
         var update = function () {
