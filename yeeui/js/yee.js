@@ -266,7 +266,9 @@
                 for (var key in $data) {
                     var temp = key.split('@');
                     if (temp.length == 2 && temp[0] == plugName) {
-                        setting = setting || {};
+                        if (setting == null) {
+                            setting = {};
+                        }
                         setting[temp[1]] = $data[key];
                     }
                 }
