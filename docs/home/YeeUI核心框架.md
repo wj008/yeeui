@@ -77,7 +77,7 @@ Yee插件 的写法
   
 #### 4.YeeUI 自动引入  
   
-- 从上面的代码，我们可以把插件部分的代码 放入 js 文件，如 module 的文件夹，命名为  yee.after_text.js  或者更高级的 配置 yee.config.js 指定模块路径。
+- 从上面的代码，我们可以把插件部分的代码 放入 js 文件，如 module 的文件夹，命名为  yee.after-text.js  或者更高级的 配置 yee.config.js 指定模块路径。
   配置好以后的代码 就成了这样  
     
 ```html  
