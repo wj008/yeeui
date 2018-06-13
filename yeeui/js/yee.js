@@ -183,8 +183,8 @@
                     else if (config.modules[module]) {
                         file = config.modules[module];
                     } else {
-                        if (/^yee_/.test(module)) {
-                            file = module.replace(/^yee_/, 'module/yee.') + '.js';
+                        if (/^yee-/.test(module)) {
+                            file = module.replace(/^yee-/, 'module/yee.') + '.js';
                         } else {
                             console.error('不存在的模块：' + module);
                         }
@@ -246,22 +246,39 @@
         if (typeof (selector) !== 'string' || typeof (name) !== 'string') {
             return;
         }
-        var plug = 'yee_' + name;
         var items = $.trim(selector).split(',');
         for (var i = 0; i < items.length; i++) {
             items[i] += "[yee-module~='" + name + "']";
         }
         Yee._extendModules[name] = items.join(',');
+
+        var plug = 'yee_' + name.replace('-', '_').toLowerCase();
         // 自动扩展JQ插件
         $.fn[plug] = function (options) {
+            options = options || {};
+            var plugName = name.toLowerCase().replace(/[-](\w)/g, function (_, word) {
+                return word.toUpperCase();
+            });
             this.each(function (idx, elem) {
                 // 加载并创建模块对象
-                var option = $.extend(options || {}, $(elem).data() || {});
+                var $data = $(elem).data() || {};
+                var setting = null;
+                for (var key in $data) {
+                    var temp = key.split('@');
+                    if (temp.length == 2 && temp[0] == plugName) {
+                        setting = setting || {};
+                        setting[temp[1]] = $data[key];
+                    }
+                }
+                if (setting == null) {
+                    setting = $data;
+                }
+                setting = $.extend(setting, options);
                 elem.yee_modules = elem.yee_modules || {};
                 // 加载并创建模块对象
                 if (elem.yee_modules[name] === void 0) {
                     elem.yee_modules[name] = true;
-                    elem.yee_modules[name] = new module(this, option);
+                    elem.yee_modules[name] = new module(this, setting);
                 }
             });
             return this;
@@ -273,7 +290,7 @@
         base = base || document.body;
         var yeeItems = $('*[yee-module]', base);
         var tempMaps = {};
-        var moduleItems = [];
+        var readyToLoad = [];//待加载的模块
         //扫描所有节点--
         yeeItems.each(function () {
             var items = String($(this).attr('yee-module') || '').split(' ');
@@ -287,13 +304,13 @@
                 }
                 tempMaps[name] = true;
                 var yee_depend = $(this).attr('yee-depend') || null;
-                moduleItems.push({module: 'yee_' + name, file: yee_depend});
+                readyToLoad.push({module: 'yee-' + name, file: yee_depend});
             }
         });
         var update = function () {
             for (var name in Yee._extendModules) {
                 var selector = Yee._extendModules[name];
-                var plug = 'yee_' + name;
+                var plug = 'yee_' + name.replace('-', '_').toLowerCase();
                 var items = $(selector, base);
                 if (items.length > 0 && typeof (items[plug]) == 'function') {
                     items[plug]();
@@ -301,14 +318,14 @@
             }
             def.resolve();
         };
-        if (moduleItems.length == 0) {
+        if (readyToLoad.length == 0) {
             update();
             return def;
         }
         var loadModules = [];
         var paths = {};
-        for (var i = 0; i < moduleItems.length; i++) {
-            var item = moduleItems[i];
+        for (var i = 0; i < readyToLoad.length; i++) {
+            var item = readyToLoad[i];
             if (item.file) {
                 paths[item.module] = item.file;
             }
@@ -324,7 +341,7 @@
         readyCallback.push(fn);
     };
     //获取节点对应模块的实例
-    Yee.getModuleInstance = function (elem, module) {
+    Yee.getModuleInstance = function (elem, name) {
         if (typeof module != 'string') {
             return null;
         }
@@ -336,7 +353,7 @@
         if (modules == null) {
             return null;
         }
-        return modules[module] === void 0 ? null : modules[module];
+        return modules[name] === void 0 ? null : modules[name];
     }
 
     //扩展JQ功能
