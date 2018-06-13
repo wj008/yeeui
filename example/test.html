@@ -31,9 +31,11 @@
         });
     });
     //定义插件
-    $.fn.extend({afterText: function (setting) {
-        $('<span></span>').html(setting.text).insertAfter(this[0]);
-    }});
+    $.fn.extend({
+        afterText: function (setting) {
+            $('<span></span>').html(setting.text).insertAfter(this[0]);
+        }
+    });
     //调用插件
     $('#test').afterText({text: 'hello'});
 
@@ -41,15 +43,16 @@
 
 <div>
     <input id="test2" type="text"/>
-    <input yee-module="after_text" data-text="这里是标签调用" type="text"/>
+    <input yee-module="after" data-text="这里是标签调用" type="text"/>
 </div>
+
 <script>
     //定义插件
-    Yee.extend(':input', 'after_text', function (elem,setting) {
+    Yee.extend(':input', 'after', function (elem, setting) {
         $('<span></span>').html(setting.text).insertAfter(elem);
     });
     //js调用插件
-    $('#test2').yee_after_text({text: 'hello'});
+    $('#test2').yee_after({text: 'hello'});
 </script>
 
 </body>
