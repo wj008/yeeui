@@ -2,6 +2,7 @@
 (function ($) {
 
     var config = null;
+    var configFile = 'yee.config.js?r=' + new Date().getTime();
     //准备完成后要执行的回调
     var readyCallback = [];
     // 加载器
@@ -128,7 +129,16 @@
     //获得根目录
     Yee.baseUrl = (function () {
         var scripts = document.getElementsByTagName('script'), script = scripts[scripts.length - 1];
-        var src = script.getAttribute.length !== undefined ? script.src : script.getAttribute('src', -1);
+        var src = script.hasAttribute ? script.src : script.getAttribute('src', 4);
+        var cfg = script.getAttribute('config');
+        if (cfg == 'false') {
+            configFile = null;
+            if (!config) {
+                config = {version: null, modules: {}, depends: {}, dataFormat: null};
+            }
+        } else if (typeof (cfg) == 'string' && cfg.length > 0) {
+            configFile = cfg;
+        }
         var m = src.match(/^(.*)yee(-\d+(\.\d+)*)?(\.min)?\.js/i);
         return m ? m[1] : '';
     })();
@@ -147,10 +157,10 @@
         var def = $.Deferred();
         //要加载脚本之前必须先加载config
         if (config == null) {
-            loader('yee.config.js?r=' + new Date().getTime()).then(function () {
+            loader(configFile).then(function () {
                 //如果没有配置文件
                 if (config == null) {
-                    config = {version: null, modules: {}, depends: {}};
+                    config = {version: null, modules: {}, depends: {}, dataFormat: null};
                 }
                 Yee.use(modules).then(function () {
                     return def.resolve();
