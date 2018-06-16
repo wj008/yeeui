@@ -136,7 +136,7 @@ var makePicker = function (elem, setting) {
             }
             index += val.length;
         }
-        console.log(keys);
+        //console.log(keys);
         var args = {};
         if (keys['yyyy'] && /^\d+$/.test(keys['yyyy'])) {
             args['yyyy'] = parseInt(keys['yyyy']);
@@ -231,7 +231,7 @@ var makePicker = function (elem, setting) {
         if (!args['ss']) {
             args['ss'] = 0;
         }
-        console.log(args);
+        //console.log(args);
         return new Date(args['yyyy'], args['MM'] - 1, args['dd'], args['HH'], args['mm'], args['ss']);
     }
     //日期格式转字符
