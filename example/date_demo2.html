@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="../yeeui/css/picker.css">
+</head>
+
+<body>
+
+<div class="yee-picker">
+    <div class="yee-picker-display">
+        2018&nbsp;&nbsp;06-15 08:23:05 星期五
+    </div>
+
+    <div class="yee-picker-toolbar">
+        <button>
+            <svg viewBox="0 0 24 24" class="yee-picker-svg-icon">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+            </svg>
+        </button>
+        <div class="yee-picker-year" style="display: none"><a class="yee-picker-year-btn" href="javascript:;">2018年 六月 5日</a></div>
+        <button>
+            <svg viewBox="0 0 24 24" class="yee-picker-svg-icon">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
+            </svg>
+        </button>
+    </div>
+
+
+    <div class="yee-picker-sel-year-month">
+        <div class="yee-picker-sel-year">
+            <ul>
+                <li>2015</li>
+                <li>2015</li>
+                <li class="yee-picker-current">2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+                <li>2015</li>
+            </ul>
+        </div>
+        <div class="yee-picker-sel-month">
+            <div>
+                <button>一月</button>
+                <button class="yee-picker-current">二月</button>
+            </div>
+            <div>
+                <button>三月</button>
+                <button>四月</button>
+            </div>
+            <div>
+                <button>五月</button>
+                <button>六月</button>
+            </div>
+            <div>
+                <button>七月</button>
+                <button>八月</button>
+            </div>
+            <div>
+                <button>九月</button>
+                <button>十月</button>
+            </div>
+            <div>
+                <button>十一</button>
+                <button>十二</button>
+            </div>
+        </div>
+    </div>
+    <div class="yee-picker-sel-day">
+        <div class="yee-picker-week">
+            <span>日</span>
+            <span>一</span>
+            <span>二</span>
+            <span>三</span>
+            <span>四</span>
+            <span>五</span>
+            <span>六</span>
+        </div>
+
+        <div class="yee-picker-day-row">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <button><span>1</span></button>
+            <button><span>2</span></button>
+            <button><span>3</span></button>
+        </div>
+        <div class="yee-picker-day-row">
+            <button><span>4</span></button>
+            <button><span>5</span></button>
+            <button><span>7</span></button>
+            <button><span>8</span></button>
+            <button><span>9</span></button>
+            <button><span>10</span></button>
+            <button><span>11</span></button>
+        </div>
+        <div class="yee-picker-day-row">
+            <button><span>12</span></button>
+            <button><span>13</span></button>
+            <button><span>14</span></button>
+            <button class="yee-picker-current"><span>15</span></button>
+            <button><span>16</span></button>
+            <button><span>17</span></button>
+            <button><span>18</span></button>
+        </div>
+        <div class="yee-picker-day-row">
+            <button><span>19</span></button>
+            <button><span>20</span></button>
+            <button><span>21</span></button>
+            <button><span>22</span></button>
+            <button><span>23</span></button>
+            <button><span>24</span></button>
+            <button><span>25</span></button>
+        </div>
+        <div class="yee-picker-day-row">
+            <button><span>26</span></button>
+            <button><span>27</span></button>
+            <button><span>28</span></button>
+            <button><span>29</span></button>
+            <button><span>30</span></button>
+            <button><span>31</span></button>
+            <span></span>
+        </div>
+        <div class="yee-picker-day-row">
+            <button><span>26</span></button>
+            <button class="yee-picker-today"><span>今天</span></button>
+        </div>
+        <div class="yee-picker-day-row">
+            <button class="yee-picker-time"><span>时间 <b>08:20:26</b></span></button>
+            <button class="yee-picker-today"><span>确定</span></button>
+        </div>
+    </div>
+
+
+    <div class="yee-picker-sel-hms">
+        <div class="yee-picker-time-display">
+            <button class="yee-picker-time"><span>时间 <b>08:20:26</b></span></button>
+            <button class="yee-picker-today"><span>确定</span></button>
+        </div>
+        <div class="yee-picker-sel-hms-layout">
+            <div class="yee-picker-sel-hour">
+                <div>
+                    <button>+</button>
+                    <button>-</button>
+                </div>
+                <div>
+                    <button>00</button>
+                    <button>01</button>
+                    <button>02</button>
+                    <button>03</button>
+                </div>
+                <div>
+                    <button>04</button>
+                    <button>05</button>
+                    <button>06</button>
+                    <button>07</button>
+                </div>
+                <div>
+                    <button class="yee-picker-current">08</button>
+                    <button>09</button>
+                    <button>10</button>
+                    <button>11</button>
+                </div>
+                <div>
+                    <button>12</button>
+                    <button>13</button>
+                    <button>14</button>
+                    <button>15</button>
+                </div>
+                <div>
+                    <button>16</button>
+                    <button>17</button>
+                    <button>18</button>
+                    <button>19</button>
+                </div>
+                <div>
+                    <button>20</button>
+                    <button>21</button>
+                    <button>22</button>
+                    <button>23</button>
+                </div>
+            </div>
+            <div class="yee-picker-sel-apart"></div>
+            <div class="yee-picker-sel-minute">
+                <div>
+                    <button>+</button>
+                    <button>-</button>
+                </div>
+                <div>
+                    <button>00</button>
+                    <button>05</button>
+                </div>
+                <div>
+                    <button>10</button>
+                    <button>15</button>
+                </div>
+                <div>
+                    <button>20</button>
+                    <button>25</button>
+                </div>
+                <div>
+                    <button>30</button>
+                    <button class="yee-picker-current">35</button>
+                </div>
+                <div>
+                    <button>40</button>
+                    <button>45</button>
+                </div>
+                <div>
+                    <button>50</button>
+                    <button>55</button>
+                </div>
+            </div>
+            <div class="yee-picker-sel-apart"></div>
+            <div class="yee-picker-sel-second">
+                <div>
+                    <button>+</button>
+                    <button>-</button>
+                </div>
+                <div>
+                    <button class="yee-picker-current">00</button>
+                    <button>05</button>
+                </div>
+                <div>
+                    <button>10</button>
+                    <button>15</button>
+                </div>
+                <div>
+                    <button>20</button>
+                    <button>25</button>
+                </div>
+                <div>
+                    <button>30</button>
+                    <button>35</button>
+                </div>
+                <div>
+                    <button>40</button>
+                    <button>45</button>
+                </div>
+                <div>
+                    <button>50</button>
+                    <button>55</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('.yee-picker-year-btn').on('click', function () {
+        var day = $('.yee-picker-sel-day');
+        var year = $('.yee-picker-sel-year-month');
+        var time = $('.yee-picker-sel-hms');
+        if (day.is(':visible')) {
+            day.hide();
+            year.show();
+            time.hide();
+        } else {
+            day.show();
+            year.hide();
+            time.hide();
+        }
+        $('.yee-picker-year-btn').text('2018年 六月');
+    });
+    $('.yee-picker-time').on('click', function () {
+        var day = $('.yee-picker-sel-day');
+        var year = $('.yee-picker-sel-year-month');
+        var time = $('.yee-picker-sel-hms');
+        day.hide();
+        year.hide();
+        time.show();
+        $('.yee-picker-year-btn').text('08时 35分 00秒');
+    });
+
+</script>
+</body>
+</html>

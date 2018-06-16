@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="../yeeui/css/picker.css">
+    <script src="../yeeui/js/module/yee.picker.js"></script>
+    <script src="../yeeui/third/jquery.mousewheel.min.js"></script>
+</head>
+
+<body>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+dflklsdj</br>
+
+<div style="position:relative;  padding: 50px; width: 300px; margin: auto">
+    <input id="picker1" value="1984-08-23 10:32:56" style="padding: 10px;">
+    <input id="picker2" value="1984-08-23 10:32:56" style="padding: 10px;">
+    <input id="picker3" style="padding: 10px;" value="1984/08/23">
+    <input id="picker4" style="padding: 10px;" value="1984/08/23 PM 08:12:26">
+
+</div>
+<script>
+    $('#picker1').yee_picker({useTime: false});
+    $('#picker2').yee_picker({useTime: true});
+    $('#picker3').yee_picker({useTime: false, format: "yyyy/MM/dd"});
+    $('#picker4').yee_picker({useTime: true, format: "yyyy/MM/dd TT hh:mm:ss"});
+</script>
+</body>
+</html>
