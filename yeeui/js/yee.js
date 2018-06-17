@@ -186,7 +186,8 @@
                     continue;
                 }
                 var file = module;
-                if (!/\.js$/i.test(module)) {
+
+                if (!/^css\!/i.test(module) && !/\.js$/i.test(module)) {
                     if (paths && paths[module]) {
                         file = paths[module];
                     }
