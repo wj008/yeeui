@@ -518,15 +518,10 @@ var makePicker = function (elem, setting) {
                 }
                 picker.emit('setDay', day);
                 if (showType == 'Date') {
-                    var height = baseBox.outerHeight(true);
-                    if (setting.useTime) {
-                        height += 30;
-                    } else {
-                        height += 5;
-                    }
-                    mainLayout.height(height);
-                    var top = baseBox.position().top + mainLayout.scrollTop();
-                    mainLayout.scrollTop(top);
+                    picker.emit('showDate', true);
+                }
+                if (showType == 'Time') {
+                    picker.emit('showTime', true);
                 }
             });
 
@@ -574,10 +569,10 @@ var makePicker = function (elem, setting) {
                 if (dateDay == 0 || dataMonth == 0 || dataYear == 0) {
                     return;
                 }
-                var lastDay = new Date(dataYear, dataMonth + 1, 0);
+                var lastDay = new Date(dataYear, dataMonth - 1, 0).getDate();//当前最后一天
                 var day = dateDay + 1;
                 if (day > lastDay) {
-                    picker.on('addMonth');
+                    picker.emit('addMonth');
                     picker.emit('setDay', 1);
                     return;
                 }
@@ -590,8 +585,8 @@ var makePicker = function (elem, setting) {
                 }
                 var day = dateDay - 1;
                 if (day < 1) {
-                    picker.on('decMonth');
-                    var lastDay = new Date(dataYear, dataMonth + 1, 0);
+                    picker.emit('decMonth');
+                    var lastDay = new Date(dataYear, dataMonth - 1, 0).getDate();
                     picker.emit('setDay', lastDay);
                     return;
                 }
@@ -604,22 +599,20 @@ var makePicker = function (elem, setting) {
                     return;
                 }
                 showType = 'Date';
-                $(function () {
-                    var height = baseBox.outerHeight(true);
-                    if (setting.useTime) {
-                        height += 30;
-                    } else {
-                        height += 5;
-                    }
-                    mainLayout.height(height);
-                    var top = baseBox.position().top + mainLayout.scrollTop();
-                    if (fisrtShow) {
-                        fisrtShow = false;
-                        mainLayout.scrollTop(top);
-                    } else {
-                        mainLayout.animate({scrollTop: top}, 300, 'swing');
-                    }
-                });
+                var height = baseBox.outerHeight(true);
+                if (setting.useTime) {
+                    height += 30;
+                } else {
+                    height += 5;
+                }
+                mainLayout.height(height);
+                var top = baseBox.position().top + mainLayout.scrollTop();
+                if (force || fisrtShow) {
+                    fisrtShow = false;
+                    mainLayout.scrollTop(top);
+                } else {
+                    mainLayout.animate({scrollTop: top}, 300, 'swing');
+                }
             });
             return baseBox;
         }
@@ -735,18 +728,20 @@ var makePicker = function (elem, setting) {
                     s += 5;
                 }
             }
-            picker.on('showTime', function (ev) {
-                if (showType == 'Time') {
+            picker.on('showTime', function (ev, force) {
+                if (!force && showType == 'Time') {
                     return;
                 }
                 showType = 'Time';
-                $(function () {
-                    var height = baseBox.outerHeight(true);
-                    height += 10;
-                    mainLayout.height(height);
-                    var top = baseBox.position().top + mainLayout.scrollTop() - 5;
+                var height = baseBox.outerHeight(true);
+                height += 10;
+                mainLayout.height(height);
+                var top = baseBox.position().top + mainLayout.scrollTop() - 5;
+                if (force) {
+                    mainLayout.scrollTop(top);
+                } else {
                     mainLayout.animate({scrollTop: top}, 300, 'swing');
-                });
+                }
             });
             picker.on('setHour', function (ev, hour) {
                 dataHour = hour;
