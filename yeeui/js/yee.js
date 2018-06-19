@@ -402,7 +402,7 @@
             }
             renderState = 1; //开启渲染
             Yee.update().then(function () {
-                $('html').show();
+                $('html').css('pointer-events', '');
                 renderState = 2;//渲染结束
                 if (readyCallback.length > 0) {
                     for (var i = 0; i < readyCallback.length; i++) {
@@ -414,7 +414,7 @@
             });
         };
         //初始化代码===========
-        $('html').hide();
+        $('html').css('pointer-events', 'none');
         var isIE = navigator.userAgent.match(/MSIE\s*(\d+)/i);
         isIE = isIE ? (isIE[1] < 9) : false;
         if (isIE) {
