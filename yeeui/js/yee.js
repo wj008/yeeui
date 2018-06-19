@@ -376,7 +376,7 @@
         if (renderState == 2) {
             return jqInit.call(this, fn);
         }
-        Yee.ready(arguments[0]);
+        Yee.ready(fn);
     }
     $.fn.emit = function () {
         var event = arguments[0] || null;
