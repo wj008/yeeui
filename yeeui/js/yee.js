@@ -299,11 +299,13 @@
     };
     //更新渲染
     Yee.update = function (base) {
+
         var def = $.Deferred();
         base = base || document.body;
         var yeeItems = $('*[yee-module]', base);
         var tempMaps = {};
         var readyToLoad = [];//待加载的模块
+
         //扫描所有节点--
         yeeItems.each(function () {
             var items = String($(this).attr('yee-module') || '').split(' ');
@@ -328,6 +330,7 @@
                 if (items.length > 0 && typeof (items[plug]) == 'function') {
                     items[plug]();
                 }
+                items.removeAttr('yee-module');
             }
             def.resolve();
         };
@@ -391,7 +394,6 @@
     $.fn.getModuleInstance = function (module) {
         return Yee.getModuleInstance(this, module);
     }
-
     //对话框
     var init = function () {
         //渲染第一次
@@ -402,7 +404,6 @@
             }
             renderState = 1; //开启渲染
             Yee.update().then(function () {
-                $('html').css('pointer-events', '');
                 renderState = 2;//渲染结束
                 if (readyCallback.length > 0) {
                     for (var i = 0; i < readyCallback.length; i++) {
@@ -413,10 +414,26 @@
                 }
             });
         };
-        //初始化代码===========
-        $('html').css('pointer-events', 'none');
-        var isIE = navigator.userAgent.match(/MSIE\s*(\d+)/i);
-        isIE = isIE ? (isIE[1] < 9) : false;
+        var css = '[yee-module]{pointer-events: none;}';
+        var IE = navigator.userAgent.match(/MSIE\s*(\d+)/i);
+        if (IE && IE[1] <= 10) {
+            css = '[yee-module]{display: none;}';
+        }
+        var style = document.createElement("style");
+        style.setAttribute("type", "text/css");
+        if (style.styleSheet) {// IE
+            style.styleSheet.cssText = css;
+        } else {// w3c
+            var cssText = document.createTextNode(css);
+            style.appendChild(cssText);
+        }
+        var head = document.getElementsByTagName('head');
+        if (head.length > 0) {
+            head[0].appendChild(style);
+        } else {
+            document.documentElement.appendChild(style);
+        }
+        var isIE = IE ? (IE[1] < 9) : false;
         if (isIE) {
             var itv = setInterval(function () {
                 try {
