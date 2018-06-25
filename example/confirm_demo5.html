@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="../yeeui/js/yee.js"></script>
+</head>
+
+<body>
+
+<div>
+    <a href="http://www.baidu.com" yee-module="confirm" data-msg="你确认要跳转到百度了吗？" target="_blank">点击跳转百度</a>
+</div>
+<div>
+    <a href="http://www.baidu.com" yee-module="confirm" data-confirm@msg="你确认要跳转到百度了吗？" data-confirm@title="跳转？" target="_blank">点击跳转百度</a>
+</div>
+<div>
+    <button yee-module="confirm" data-confirm@msg="你确认要弹出一个对话框吗？" onclick="alert('弹出窗口');">点击弹出执行js</button>
+</div>
+
+<div>
+    <form yee-module="confirm" data-confirm@msg="你确认要提交表单了吗？">
+        <div>测试 <input value="test"></div>
+        <div><input type="submit" value="提交表单"></div>
+    </form>
+</div>
+
+<div>后台返回确认信息</div>
+<div>
+    <form yee-module="confirm" data-confirm@url="confirm.json">
+        <div>测试 <input value="test"></div>
+        <div><input type="submit" value="提交表单"></div>
+    </form>
+</div>
+
+</body>
+</html>
