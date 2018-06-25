@@ -50,6 +50,11 @@
                 }
                 return layer.open(data);
             }
+            if (option && !option['time']) {
+                option['time'] = 1000;
+            } else {
+                option = {'time': 1000};
+            }
             return layer.msg(msg, option);
         }
         //加载层
