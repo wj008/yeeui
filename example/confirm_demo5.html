@@ -44,7 +44,7 @@
         //加载 yee-popup 支持 Yee.msg
         Yee.use('yee-popup').then(function () {
             //监听询问验证之前是否选择，如果没有选择取消询问
-            $('#confirm1').on('before_confirm', function (ev) {
+            $('#confirm1').on('confirm_before', function (ev) {
                 if ($(':input[type=checkbox]:checked').length == 0) {
                     Yee.msg('还没有选择任何选项');
                     return false;
