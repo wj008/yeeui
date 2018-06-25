@@ -56,7 +56,6 @@
             }
             try {
                 script.src = url;
-                console.log(url);
                 var head = document.getElementsByTagName('head');
                 if (head.length > 0) {
                     head[0].appendChild(script);
