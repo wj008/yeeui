@@ -1014,7 +1014,7 @@
                 }
                 window.setTimeout(function () {
                     lock = false;
-                }, 100);
+                }, 300);
             };
             if (window.Yee) {
                 Yee.use('jquery-mousewheel').then(function () {
