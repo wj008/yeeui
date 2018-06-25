@@ -98,7 +98,7 @@
                 if (qem.is('.disabled') || qem.is(':disabled')) {
                     return false;
                 }
-                if (qem.triggerHandler('before_confirm') === false) {
+                if (qem.triggerHandler('confirm_before') === false) {
                     return false;
                 }
                 return confirm(ev, this);
@@ -117,7 +117,7 @@
                 if (qem.is('.disabled') || qem.is(':disabled')) {
                     return false;
                 }
-                if (qem.triggerHandler('before_confirm') === false) {
+                if (qem.triggerHandler('confirm_before') === false) {
                     return false;
                 }
                 return confirm(ev);
