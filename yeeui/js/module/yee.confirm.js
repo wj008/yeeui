@@ -1,5 +1,5 @@
 (function ($, Yee) {
-    Yee.extend(':input,button,form,a', 'confirm', function (element, option) {
+    Yee.extend(':input,button,form,a', 'confirm', function (element, setting) {
         var qem = $(element);
         var confirmPrevent = true;
 
@@ -57,13 +57,16 @@
         //询问
         function confirm(ev) {
             if (!confirmPrevent) {
+                if (ev.result === false) {
+                    return false;
+                }
                 return true;
             }
             ev.stopImmediatePropagation();
-            var url = qem.data('confirm@url') || option['url'] || '';
-            var method = qem.data('confirm@method') || option['method'] || 'get';
-            var msg = qem.data('confirm@msg') || option['msg'] || '';
-            var title = qem.data('confirm@title') || option['title'] || '询问对话框';
+            var url = setting('url', '');
+            var method = setting('method', 'get');
+            var msg = setting('msg', '');
+            var title = setting('title', '询问对话框');
             if (!msg && !url) {
                 return true;
             }
@@ -98,13 +101,14 @@
                 if (qem.is('.disabled') || qem.is(':disabled')) {
                     return false;
                 }
-                if (qem.triggerHandler('confirm_before') === false) {
+                if (qem.emit('confirm_before') === false) {
                     return false;
                 }
-                return confirm(ev, this);
+                return confirm(ev);
             });
             var typeEvents = ($._data(qem[0], "events") || qem.data("events")).submit;
             typeEvents.unshift(typeEvents.pop());
+
         } else {
             var currentListener = qem[0].onclick;
             if (currentListener) {
@@ -117,13 +121,15 @@
                 if (qem.is('.disabled') || qem.is(':disabled')) {
                     return false;
                 }
-                if (qem.triggerHandler('confirm_before') === false) {
+                if (qem.emit('confirm_before') === false) {
                     return false;
                 }
-                return confirm(ev);
+                var ret = confirm(ev);
+                return ret;
             });
             var typeEvents = ($._data(qem[0], "events") || qem.data("events")).click;
             typeEvents.unshift(typeEvents.pop());
+
         }
     });
 })(jQuery, Yee);
