@@ -13,6 +13,14 @@ Yee.config({
     },
     depends: {
         'yee-picker': 'css!../css/picker.css',
+        'yee-popup': function () {
+            if (window.top === window) {
+                var isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+                return isMobile ? '../layer/mobile/layer.js' : '../layer/layer.js';
+            }
+            return null;
+        },
+        'yee-confirm': 'yee-popup',
     },
     dataFormat: null
 })

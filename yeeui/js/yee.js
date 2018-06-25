@@ -228,6 +228,9 @@
             var module = modules[i];
             if (config.depends[module]) {
                 var depends = config.depends[module];
+                if (typeof depends == 'function') {
+                    depends = depends();
+                }
                 if (typeof depends == 'string') {
                     depends = [depends];
                 }
@@ -317,9 +320,9 @@
                 if (tempMaps[name] || Yee._extendModules[name]) {
                     continue;
                 }
+                var yee_src = $(this).attr('yee-src') || null;
                 tempMaps[name] = true;
-                var yee_depend = $(this).attr('yee-depend') || null;
-                readyToLoad.push({module: 'yee-' + name, file: yee_depend});
+                readyToLoad.push({module: 'yee-' + name, file: yee_src});
             }
         });
         var update = function () {
