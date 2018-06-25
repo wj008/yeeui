@@ -21,6 +21,7 @@ Yee.config({
             return null;
         },
         'yee-confirm': 'yee-popup',
+        'yee-ajax': 'yee-popup',
     },
     dataFormat: null
 })
