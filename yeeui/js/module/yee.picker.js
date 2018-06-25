@@ -1,15 +1,15 @@
 (function ($, Yee) {
     var makePicker = function (elem, setting) {
 
-        if (!setting) {
-            setting = {};
-        }
-        setting['useTime'] = setting['useTime'] || false;
-        if (setting.useTime) {
-            setting['format'] = setting['format'] || 'yyyy-MM-dd HH:mm:ss';
+        var option = setting();
+        console.log(option);
+        option['useTime'] = option['useTime'] || false;
+        if (option.useTime) {
+            option['format'] = option['format'] || 'yyyy-MM-dd HH:mm:ss';
         } else {
-            setting['format'] = setting['format'] || 'yyyy-MM-dd';
+            option['format'] = option['format'] || 'yyyy-MM-dd';
         }
+
         //字符转日期格式
         var toDate = function (str, format) {
             var temp1 = format.split(/(yyyy|MMMM|dddd|MMM|ddd|yy|MM|dd|HH|mm|ss|TT|tt|hh|M|d|H|m|s|h|L|l|Z)/);
@@ -300,13 +300,26 @@
             });
             return mask;
         };
-        var monthMap = {1: '一月', 2: '二月', 3: '三月', 4: '四月', 5: '五月', 6: '六月', 7: '七月', 8: '八月', 9: '九月', 10: '十月', 11: '十一', 12: '十二'};
+        var monthMap = {
+            1: '一月',
+            2: '二月',
+            3: '三月',
+            4: '四月',
+            5: '五月',
+            6: '六月',
+            7: '七月',
+            8: '八月',
+            9: '九月',
+            10: '十月',
+            11: '十一',
+            12: '十二'
+        };
         var weekMap = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
         var qem = $(elem);
         var input = qem;
         if (!qem.is(':input')) {
-            if (setting['input']) {
-                input = $(setting['input']);
+            if (option['input']) {
+                input = $(option['input']);
             }
         }
         var dateValue = new Date();
@@ -483,7 +496,7 @@
                                 $('<span></span>').text(d).appendTo(btn);
                                 btn.on('click', d, function (ev) {
                                     picker.emit('setDay', ev.data);
-                                    if (setting.useTime) {
+                                    if (option.useTime) {
                                         picker.emit('showTime');
                                     } else {
                                         setTimeout(function () {
@@ -501,7 +514,7 @@
                         var btn = $('<button class="yee-picker-today"><span>今天</span></button>').appendTo(row);
                         btn.on('click', function (ev) {
                             picker.emit('setDate', new Date());
-                            if (!setting.useTime) {
+                            if (!option.useTime) {
                                 picker.emit('choiceDate', new Date());
                             }
                         });
@@ -510,7 +523,7 @@
                         var btn = $('<button class="yee-picker-today"><span>今天</span></button>').appendTo(row);
                         btn.on('click', function (ev) {
                             picker.emit('setDate', new Date());
-                            if (!setting.useTime) {
+                            if (!option.useTime) {
                                 picker.emit('choiceDate', new Date());
                             }
                         });
@@ -599,7 +612,7 @@
                     }
                     showType = 'Date';
                     var height = baseBox.outerHeight(true);
-                    if (setting.useTime) {
+                    if (option.useTime) {
                         height += 30;
                     } else {
                         height += 5;
@@ -890,7 +903,7 @@
             var toolRightBtn = $('<button><svg viewBox="0 0 24 24" class="yee-picker-svg-icon"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button>').appendTo(toolbarLayout);
             createYMBox(picker, mainLayout);
             createDateBox(picker, mainLayout);
-            if (setting.useTime) {
+            if (option.useTime) {
                 createTimeBox(picker, mainLayout);
                 picker.on('changeDateTime', function (ev, date) {
                     var month = date.getMonth() + 1;
@@ -904,7 +917,7 @@
                     }
                     toolDayLabel.text(day + '日');
                     displayLabel.text(year + ' ' + dateFormat(date, 'MM-dd HH:mm:ss') + ' ' + weekMap[week]);
-                    var change = dateFormat(date, setting.format);
+                    var change = dateFormat(date, option.format);
                     qem.emit('picker.change', change);
                 });
                 picker.on('showDate', function (ev) {
@@ -917,7 +930,7 @@
                     toolDayLabel.show();
                 });
                 picker.on('choiceDateTime', function (ev, date) {
-                    var choice = dateFormat(date, setting.format);
+                    var choice = dateFormat(date, option.format);
                     if (input) {
                         input.val(choice);
                     }
@@ -937,11 +950,11 @@
                     }
                     toolDayLabel.text(day + '日');
                     displayLabel.text(year + ' ' + dateFormat(date, 'MM-dd') + ' ' + weekMap[week]);
-                    var change = dateFormat(date, setting.format);
+                    var change = dateFormat(date, option.format);
                     qem.emit('picker.change', change);
                 });
                 picker.on('choiceDate', function (ev, date) {
-                    var choice = dateFormat(date, setting.format);
+                    var choice = dateFormat(date, option.format);
                     if (input) {
                         input.val(choice);
                     }
@@ -991,7 +1004,7 @@
                     return;
                 }
                 lock = true;
-                if (setting.useTime) {
+                if (option.useTime) {
                     if (delta == 1 && showType == 'Time') {
                         picker.emit('showDate');
                     }
@@ -1027,7 +1040,7 @@
                 var dw = $(document).width();
                 var dh = $(document).height();
                 picker.show();
-                if (setting.useTime) {
+                if (option.useTime) {
                     picker.emit('setDateTime', dateValue);
                 } else {
                     picker.emit('setDate', dateValue);
@@ -1060,7 +1073,7 @@
                 if (val) {
                     dateValue = new Date(val);
                     if (isNaN(dateValue)) {
-                        dateValue = toDate(val, setting.format);
+                        dateValue = toDate(val, option.format);
                     }
                 }
                 offset = input.offset();
@@ -1078,12 +1091,12 @@
             if (typeof date == 'string') {
                 dateValue = new Date(date);
                 if (isNaN(dateValue)) {
-                    dateValue = toDate(val, setting.format);
+                    dateValue = toDate(val, option.format);
                 }
             } else if (date instanceof Date) {
                 dateValue = date;
             }
-            if (setting.useTime) {
+            if (option.useTime) {
                 picker.emit('setDateTime', dateValue);
             } else {
                 picker.emit('setDate', dateValue);
@@ -1106,7 +1119,9 @@
         }
         $.fn.yee_picker = function (setting) {
             $(this).each(function (idx, elem) {
-                makePicker(elem, setting);
+                makePicker(elem, function () {
+                    return setting || {};
+                });
             });
         }
     }
