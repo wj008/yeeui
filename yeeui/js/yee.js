@@ -8,6 +8,7 @@
     // 加载器
     var loader = function (url, mode) {
         var def = $.Deferred();
+
         var type = 'js';
         var match = url.match(/^css\!(.*)$/i);
         if (match) {
@@ -49,11 +50,13 @@
                     def.resolve(url);
                 };
                 script.onerror = function () {
+                    console.error('加载文件失败：' + url);
                     def.resolve(url);
                 };
             }
             try {
                 script.src = url;
+                console.log(url);
                 var head = document.getElementsByTagName('head');
                 if (head.length > 0) {
                     head[0].appendChild(script);
@@ -224,6 +227,7 @@
         //遍历依赖==
         var dependModule = [];
         var dependSet = {};
+
         for (var i = 0; i < modules.length; i++) {
             var module = modules[i];
             if (config.depends[module]) {
@@ -235,8 +239,8 @@
                     depends = [depends];
                 }
                 if (depends instanceof Array) {
-                    for (var i = 0; i < depends.length; i++) {
-                        var temp = depends[i];
+                    for (var j = 0; j < depends.length; j++) {
+                        var temp = depends[j];
                         if (typeof temp !== 'string' || temp == '' || dependSet[temp]) {
                             continue;
                         }
@@ -246,6 +250,7 @@
                 }
             }
         }
+
         if (dependModule.length > 0) {
             Yee.use(dependModule).then(function () {
                 loadModule();
