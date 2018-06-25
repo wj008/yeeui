@@ -1,8 +1,8 @@
 (function ($) {
     //number 数值输入
-    Yee.extend(':input', 'number', function (elem) {
+    Yee.extend(':input', 'number', function (elem, setting) {
         var that = $(elem);
-        var numberScale = that.data('numberScale') || -1;
+        var numberScale = setting('numberScale', -1);
         var lastValue = '';
         var reg = null;
         if (numberScale > 0) {
