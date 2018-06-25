@@ -274,22 +274,40 @@
                 return word.toUpperCase();
             });
             this.each(function (idx, elem) {
-                // 加载并创建模块对象
-                var $data = $(elem).data() || {};
-                var setting = null;
-                for (var key in $data) {
-                    var temp = key.split('@');
-                    if (temp.length == 2 && temp[0] == plugName) {
-                        if (setting == null) {
-                            setting = {};
+                var setting = function (name, def) {
+                    if (typeof name == 'string') {
+                        var value = $(elem).data(plugName + '@' + name);
+                        if (value === null || value === void 0) {
+                            value = $(elem).data(name);
                         }
-                        setting[temp[1]] = $data[key];
+                        if (value === null || value === void 0) {
+                            value = options[name];
+                        }
+                        if (value === null || value === void 0) {
+                            if (def === null || def === void 0) {
+                                return null;
+                            }
+                            return def;
+                        }
+                        return value;
                     }
-                }
-                if (setting == null) {
-                    setting = $data;
-                }
-                setting = $.extend(setting, options);
+                    var $data = $(elem).data() || {};
+                    var data = null;
+                    for (var key in $data) {
+                        var temp = key.split('@');
+                        if (temp.length == 2 && temp[0] == plugName) {
+                            if (data === null) {
+                                data = {};
+                            }
+                            data[temp[1]] = $data[key];
+                        }
+                    }
+                    if (data === null) {
+                        data = $data;
+                    }
+                    data = $.extend(options, data);
+                    return data;
+                };
                 elem.yee_modules = elem.yee_modules || {};
                 // 加载并创建模块对象
                 if (elem.yee_modules[name] === void 0) {
@@ -326,14 +344,20 @@
             }
         });
         var update = function () {
+            var items = [];
             for (var name in Yee._extendModules) {
                 var selector = Yee._extendModules[name];
                 var plug = 'yee_' + name.replace('-', '_').toLowerCase();
-                var items = $(selector, base);
-                if (items.length > 0 && typeof (items[plug]) == 'function') {
-                    items[plug]();
+                var el = $(selector, base);
+                if (el.length > 0 && typeof (el[plug]) == 'function') {
+                    items.push({el: el, plug: plug});
                 }
-                items.removeAttr('yee-module');
+            }
+            for (var i = 0; i < items.length; i++) {
+                var el = items[i].el;
+                var plug = items[i].plug;
+                el[plug]();
+                el.removeAttr('yee-module');
             }
             def.resolve();
         };
