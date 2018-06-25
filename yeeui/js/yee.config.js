@@ -9,7 +9,7 @@ Yee.config({
         'jquery-cookie': '../third/jquery.cookie.js',
         'jquery-mousewheel': '../third/jquery.mousewheel.min.js',
         'number': 'module/yee.number.js',
-        'integer': 'module/yee.number.js',
+        'integer': 'module/yee.number.js'
     },
     depends: {
         'yee-picker': 'css!../css/picker.css',
@@ -22,7 +22,7 @@ Yee.config({
         },
         'yee-confirm': 'yee-popup',
         'yee-ajax': 'yee-popup',
+        'yee-validate': 'yee-popup'
     },
     dataFormat: null
-})
-;
+});
