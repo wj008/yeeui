@@ -3,6 +3,7 @@
         var qem = $(element);
         var confirmPrevent = true;
 
+        //发送ajax
         function send(opt, callback) {
             var args = Yee.parseUrl(opt.url);
             args.path = args.path || window.location.pathname;
@@ -53,17 +54,16 @@
             }
         }
 
+        //询问
         function confirm(ev) {
             if (!confirmPrevent) {
                 return true;
             }
             ev.stopImmediatePropagation();
-
             var url = qem.data('confirm@url') || option['url'] || '';
             var method = qem.data('confirm@method') || option['method'] || 'get';
             var msg = qem.data('confirm@msg') || option['msg'] || '';
             var title = qem.data('confirm@title') || option['title'] || '询问对话框';
-
             if (!msg && !url) {
                 return true;
             }
