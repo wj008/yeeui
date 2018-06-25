@@ -52,7 +52,7 @@
             }
             if (option && !option['time']) {
                 option['time'] = 1000;
-            } else {
+            } else if (!option) {
                 option = {'time': 1000};
             }
             return layer.msg(msg, option);
