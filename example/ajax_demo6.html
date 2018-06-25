@@ -35,13 +35,15 @@
 
 <div>后台返回确认信息,成功后跳转到百度</div>
 <div>
-    <form action="ajax_success.json" onback="console.log(ret);" yee-module="ajax confirm"
+    <form action="ajax_success.json" onback="console.log(ret);" yee-module="ajax confirm validate"
           data-ajax@back-url="http://www.baidu.com"
           data-confirm@url="confirm.json">
-        <div>测试 <input value="test"></div>
+        <div>用户名： <input name="name" value=""></div>
+        <div>密码： <input name="password" value=""></div>
         <div><input type="submit" value="提交表单"></div>
     </form>
 </div>
+
 <div>询问之前取消</div>
 <div>
     <button id="confirm1" yee-module="confirm" data-confirm@msg="确认要删除所选择项了吗？">删除所选</button>
