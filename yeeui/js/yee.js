@@ -188,7 +188,6 @@
                     continue;
                 }
                 var file = module;
-
                 if (!/^css\!/i.test(module) && !/\.js$/i.test(module)) {
                     if (paths && paths[module]) {
                         file = paths[module];
@@ -389,7 +388,7 @@
     };
     //获取节点对应模块的实例
     Yee.getModuleInstance = function (elem, name) {
-        if (typeof module != 'string') {
+        if (typeof name != 'string') {
             return null;
         }
         var qem = $(elem);
@@ -423,7 +422,7 @@
         return $(this).triggerHandler(event, args);
     }
     $.fn.getModuleInstance = function (module) {
-        return Yee.getModuleInstance(this, module);
+        return Yee.getModuleInstance(this[0], module);
     }
     //对话框
     var init = function () {

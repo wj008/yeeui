@@ -8,8 +8,9 @@ Yee.config({
         'json': window.JSON ? '' : '../third/json3.min.js',
         'jquery-cookie': '../third/jquery.cookie.js',
         'jquery-mousewheel': '../third/jquery.mousewheel.min.js',
-        'number': 'module/yee.number.js',
-        'integer': 'module/yee.number.js'
+        'yee-number': 'module/yee.number.js',
+        'yee-integer': 'module/yee.number.js',
+        'yee-remote': 'module/yee.validate.js',
     },
     depends: {
         'yee-picker': 'css!../css/picker.css',
