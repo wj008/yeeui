@@ -26,16 +26,16 @@
     </style>
 </head>
 <body>
-<form method="post" yee-module="validate">
+<form method="post" yee-module="validate" data-validate@mode="2">
     <div>
         <label>用户名：</label>
-        <div><input name="username" type="text" data-val='{"r":true}' data-msg='{"r":"请填写用户名"}'
+        <div><input name="username" type="text" data-val='{"r":true}' data-val-msg='{"r":"请填写用户名"}'
                     yee-module="remote" data-remote@url="remote.php"
         ></div>
     </div>
     <div>
         <label>姓名：</label>
-        <div><input name="name" type="text" data-val='{"r":true}' data-msg='{"r":"请填写姓名"}'></div>
+        <div><input name="name" type="text" data-val='{"r":true}' data-val-msg='{"r":"请填写姓名"}'></div>
     </div>
     <div>
         <label>姓名：</label>
