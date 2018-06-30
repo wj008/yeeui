@@ -197,19 +197,30 @@
                 args['tt'] = keys['tt'].toLowerCase();
             }
             if (!args['HH'] && keys['hh'] && /^\d+$/.test(keys['hh'])) {
-                args['HH'] = parseInt(keys['hh']);
-
+                var hh = parseInt(keys['hh']);
+                args['HH'] = hh;
                 if (args['tt'] && args['tt'] == 'pm') {
-                    args['HH'] = args['HH'] + 12;
+                    if (hh != 12) {
+                        args['HH'] = hh + 12;
+                    }
+                } else {
+                    if (hh == 12) {
+                        args['HH'] = 0;
+                    }
                 }
             }
             if (!args['HH'] && keys['h'] && /^\d+$/.test(keys['h'])) {
+                var h = parseInt(keys['h']);
                 args['HH'] = parseInt(keys['h']);
-
                 if (args['tt'] && args['tt'] == 'pm') {
-                    args['HH'] = args['HH'] + 12;
+                    if (h != 12) {
+                        args['HH'] = h + 12;
+                    }
+                } else {
+                    if (h == 12) {
+                        args['HH'] = 0;
+                    }
                 }
-
             }
             if (!args['HH']) {
                 args['HH'] = 0;
