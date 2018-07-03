@@ -2,14 +2,13 @@
     var makePicker = function (elem, setting) {
 
         var option = setting();
-        console.log(option);
         option['useTime'] = option['useTime'] || false;
         if (option.useTime) {
             option['format'] = option['format'] || 'yyyy-MM-dd HH:mm:ss';
         } else {
             option['format'] = option['format'] || 'yyyy-MM-dd';
         }
-
+        console.log(option);
         //字符转日期格式
         var toDate = function (str, format) {
             var temp1 = format.split(/(yyyy|MMMM|dddd|MMM|ddd|yy|MM|dd|HH|mm|ss|TT|tt|hh|M|d|H|m|s|h|L|l|Z)/);
@@ -704,6 +703,7 @@
                     var datatime = new Date(dataDate.getFullYear(), dataDate.getMonth(), dataDate.getDate(), dataHour, dataMinute, dataSecond);
                     picker.emit('choiceDateTime', datatime);
                 });
+
                 picker.on('changeDate', function (ev, date) {
                     dataDate = date;
                     changeDateTime();
@@ -914,7 +914,9 @@
             var toolRightBtn = $('<button><svg viewBox="0 0 24 24" class="yee-picker-svg-icon"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button>').appendTo(toolbarLayout);
             createYMBox(picker, mainLayout);
             createDateBox(picker, mainLayout);
+
             if (option.useTime) {
+                console.log('111', option.useTime);
                 createTimeBox(picker, mainLayout);
                 picker.on('changeDateTime', function (ev, date) {
                     var month = date.getMonth() + 1;
@@ -949,6 +951,7 @@
                     qem.emit('picker.choice', choice);
                 });
             } else {
+                console.log('222', option.useTime);
                 picker.on('changeDate', function (ev, date) {
                     var month = date.getMonth() + 1;
                     var year = date.getFullYear();

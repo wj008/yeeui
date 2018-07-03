@@ -350,7 +350,6 @@
                 self.setError(elem, elem.data('valError'));
                 elem.removeData('valError');
             }
-
             var input = function (ev) {
                 var data = getFieldData(elem);
                 if (!data || data['valOff']) {
@@ -453,25 +452,35 @@
                 }
             });
             if (errItems.length > 0) {
-                if (qform.emit('displayAllError', errItems) !== false) {
-                    self.displayAllError(errItems);
-                }
-                setTimeout(function () {
-                    var firstElem = errItems[0].elem;
-                    try {
-                        if (firstElem.is(':hidden') || firstElem.is(':radio') || firstElem.is(':checkbox')) {
-                            firstElem.emit('focus');
-                        } else {
-                            firstElem.trigger('focus');
-                        }
-                    } catch (e) {
-                        firstElem.emit('focus');
-                    }
-                }, 10);
+                self.displayAllError(errItems);
             }
             return errItems.length == 0;
         }
+        this.setFocus = function (elem) {
+            try {
+                if (elem.is(':hidden')) {
+                    elem.emit('focus');
+                } else {
+                    elem.trigger('focus');
+                }
+            } catch (e) {
+                elem.emit('focus');
+            }
+        }
+
         this.displayAllError = function (errItems) {
+            if (!errItems || errItems.length == 0) {
+                return;
+            }
+            var firstElem = errItems[0].elem;
+            if (validateMode == 0) {
+                setTimeout(function () {
+                    self.setFocus(firstElem);
+                }, 10);
+            }
+            if (qform.emit('displayAllError', errItems) === false) {
+                return;
+            }
             if (validateMode == 1) {
                 var errors = [];
                 $(errItems).each(function () {
@@ -481,21 +490,21 @@
                     title: '错误提示',
                     icon: 7,
                     anim: 5
+                }, function (idx) {
+                    self.setFocus(firstElem);
+                    Yee.close(idx);
                 });
-                return;
             }
             if (validateMode == 2) {
-                var error = '';
-                $(errItems).each(function () {
-                    error = this.msg;
-                    return false;
-                });
+                var error = errItems[0].msg;
                 Yee.alert(error, {
                     title: '错误提示',
                     icon: 7,
                     anim: 5
+                }, function (idx) {
+                    self.setFocus(firstElem);
+                    Yee.close(idx);
                 });
-                return;
             }
             $(errItems).each(function () {
                 self.setError(this.elem, this.msg);
@@ -522,6 +531,7 @@
             }
             elem.setValid(msg);
         }
+
         qform.on('submit', function (ev) {
             try {
                 return self.checkForm();
@@ -538,91 +548,66 @@
         qform.emit('update');
     }
 
-    function Remote(el, setting) {
-        var elem = $(el);
-        var name = elem.attr('name') || '';
-        var url = setting('url', '');
-        if (name == '' || url == '') {
-            return;
-        }
-        var method = setting('method', 'post').toUpperCase();
-        var bind = setting('bind', '');//绑定的名称
-        var form = elem.form ? $(elem.form) : $(elem).parents('form:first');
-        if (form.length == 0) {
-            form = $(document.body);
-        }
-        var timer = null;
-        elem.on('change', function () {
-            if (timer) {
-                window.clearTimeout(timer);
-                timer = null;
+    //显示错误
+    $.fn.setError = function (msg, mode) {
+        this.each(function (idx, el) {
+            var elem = $(el);
+            if (!elem.is(':input')) {
+                return;
             }
-            timer = window.setTimeout(function () {
-                if (!elem.data('normalResult')) {
-                    return;
-                }
-                var data = {};
-                var value = elem.val();
-                data[name] = value;
-                if (bind != '') {
-                    var arrTemp = bind.split(',');
-                    for (var i = 0; i < arrTemp.length; i++) {
-                        var xname = arrTemp[i];
-                        var qel = form.find(':input[name="' + xname + '"]');
-                        if (qel.length > 0) {
-                            var val = qel.val() || '';
-                            if (qel.length > 0) {
-                                var temp = [];
-                                qel.filter(':checked').each(function () {
-                                    temp.push($(this).val());
-                                });
-                                val = temp.join(',');
-                            }
-                            data[xname] = val;
-                        } else {
-                            var xAars = Yee.parseUrl(window.location.search);
-                            if (xAars.prams[xname] !== void 0) {
-                                data[xname] = xAars.prams[xname];
-                            }
-                        }
-                    }
-                }
-                $.ajax({
-                    url: url, data: data, type: method, dataType: 'json', success: function (ret) {
-                        var fdata = getFieldData(elem);
-                        if (typeof (ret) == 'boolean') {
-                            elem.data('remoteResult', ret);
-                            if (ret) {
-                                if (fdata.valValid) {
-                                    elem.setValid(fdata.valValid);
-                                    elem.data('remoteMessage', fdata.valValid);
-                                } else {
-                                    elem.setDefault();
-                                }
-                            } else {
-                                if (fdata.valMsg['remote']) {
-                                    elem.data('remoteMessage', fdata.valMsg['remote']);
-                                    elem.setError(fdata.valMsg['remote']);
-                                }
-                            }
-                        } else {
-                            if (ret.status === true) {
-                                elem.data('remoteResult', true);
-                                elem.data('remoteMessage', ret.message);
-                                elem.setValid(ret.message);
-
-                            } else {
-                                elem.data('remoteResult', false);
-                                elem.data('remoteMessage', ret.error);
-                                elem.setError(ret.error);
-                            }
-                        }
-                    }
-                });
-            }, 10);
+            var ckBoxs = Util.findRBox(elem) || elem;
+            console.log(ckBoxs, mode);
+            ckBoxs.removeClass(Config.input_valid + ' ' + Config.input_default).addClass(Config.input_error);
+            if (mode == 1 || mode == 2) {
+                return;
+            }
+            if (msg) {
+                var label = Util.getTipLabel(elem);
+                label.removeClass(Config.field_valid + ' ' + Config.field_default).addClass(Config.field_error);
+                label.show();
+                label.html(msg);
+            }
         });
     }
-
+    //显示正确
+    $.fn.setDefault = function (msg) {
+        this.each(function (idx, el) {
+            var elem = $(el);
+            if (!elem.is(':input')) {
+                return;
+            }
+            var ckBoxs = Util.findRBox(elem) || elem;
+            ckBoxs.removeClass(Config.input_error + ' ' + Config.input_valid).addClass(Config.input_default);
+            var label = Util.getTipLabel(elem);
+            label.removeClass(Config.field_error + ' ' + Config.field_valid).addClass(Config.field_default);
+            if (msg) {
+                label.html(msg);
+                label.show();
+            } else {
+                label.hide();
+            }
+        });
+    }
+    //显示正确
+    $.fn.setValid = function (msg) {
+        this.each(function (idx, el) {
+            var elem = $(el);
+            if (!elem.is(':input')) {
+                return;
+            }
+            var ckBoxs = Util.findRBox(elem) || elem;
+            ckBoxs.removeClass(Config.input_error + ' ' + Config.input_default).addClass(Config.input_valid);
+            if (msg) {
+                var label = Util.getTipLabel(elem);
+                label.show();
+                label.removeClass(Config.field_error + ' ' + Config.field_default).addClass(Config.field_valid);
+                label.html(msg);
+            } else {
+                elem.setDefault(msg);
+            }
+        });
+    }
+    //表单检查
     $.fn.checkForm = function () {
         var form = $(this.get(0));
         if (!form.is('form')) {
@@ -634,63 +619,40 @@
         }
         return false;
     }
+
     //显示错误
-    $.fn.setError = function (msg, mode) {
-        var elem = $(this.get(0));
-        var form = elem.parents('form');
-        if (form.emit('displayError', elem, msg) === false) {
+    $.fn.showError = function (formError) {
+        var form = $(this[0]);
+        if (!form.is('form')) {
             return;
         }
-        var ckBoxs = Util.findRBox(elem) || elem;
-        ckBoxs.removeClass(Config.input_valid + ' ' + Config.input_default).addClass(Config.input_error);
-        if (mode == 1 || mode == 2) {
-            return;
+        var errItems = [];
+        var firstError = null;
+        for (var name in formError) {
+            if (firstError == null) {
+                firstError = formError[name];
+            }
+            var elem = form.find(":input[name='" + name + "']");
+            if (elem.length > 0) {
+                var msg = formError[name];
+                errItems.push({elem: elem, msg: msg});
+            }
         }
-        if (msg) {
-            var label = Util.getTipLabel(elem);
-            label.removeClass(Config.field_valid + ' ' + Config.field_default).addClass(Config.field_error);
-            label.show();
-            label.html(msg);
-        }
-    }
-    //显示正确
-    $.fn.setDefault = function (msg) {
-        var elem = $(this.get(0));
-        var form = elem.parents('form');
-        if (form.emit('displayDefault', elem, msg) === false) {
-            return;
-        }
-        var ckBoxs = Util.findRBox(elem) || elem;
-        ckBoxs.removeClass(Config.input_error + ' ' + Config.input_valid).addClass(Config.input_default);
-        var label = Util.getTipLabel(elem);
-        label.removeClass(Config.field_error + ' ' + Config.field_valid).addClass(Config.field_default);
-        if (msg) {
-            label.html(msg);
-            label.show();
+        if (errItems.length == 0 && firstError) {
+            Yee.alert(firstError, {
+                title: '错误提示',
+                icon: 7,
+                anim: 6
+            });
         } else {
-            label.hide();
-        }
-    }
-    //显示正确
-    $.fn.setValid = function (msg) {
-        var elem = $(this.get(0));
-        var form = elem.parents('form');
-        if (form.emit('displayValid', elem, msg) === false) {
-            return;
-        }
-        var ckBoxs = Util.findRBox(elem) || elem;
-        ckBoxs.removeClass(Config.input_error + ' ' + Config.input_default).addClass(Config.input_valid);
-        if (msg) {
-            var label = Util.getTipLabel(elem);
-            label.show();
-            label.removeClass(Config.field_error + ' ' + Config.field_default).addClass(Config.field_valid);
-            label.html(msg);
-        } else {
-            elem.setDefault(msg);
+            var instance = form.getModuleInstance('validate');
+            if (instance) {
+                instance.displayAllError(errItems);
+            }
         }
     }
 
     Yee.extend('form', 'validate', Validate);
-    Yee.extend(':input', 'remote', Remote);
+
 
 })(jQuery, Yee);

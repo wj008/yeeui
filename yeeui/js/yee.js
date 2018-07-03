@@ -308,7 +308,7 @@
                     if (data === null) {
                         data = $data;
                     }
-                    data = $.extend(options, data);
+                    data = $.extend({}, options, data);
                     return data;
                 };
                 elem.yee_modules = elem.yee_modules || {};

@@ -10,7 +10,6 @@ Yee.config({
         'jquery-mousewheel': '../third/jquery.mousewheel.min.js',
         'yee-number': 'module/yee.number.js',
         'yee-integer': 'module/yee.number.js',
-        'yee-remote': 'module/yee.validate.js',
     },
     depends: {
         'yee-picker': 'css!../css/picker.css',
