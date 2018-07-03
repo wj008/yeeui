@@ -556,7 +556,6 @@
                 return;
             }
             var ckBoxs = Util.findRBox(elem) || elem;
-            console.log(ckBoxs, mode);
             ckBoxs.removeClass(Config.input_valid + ' ' + Config.input_default).addClass(Config.input_error);
             if (mode == 1 || mode == 2) {
                 return;
