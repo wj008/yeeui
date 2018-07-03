@@ -15,6 +15,10 @@
             border: 1px #f00 dashed;
         }
 
+        input[type='checkbox'].input-error + span, input[type='radio'].input-error + span {
+            background: #ffe8ea;
+        }
+
         .field-valid {
             color: #0a4;
             padding-left: 10px;
@@ -29,7 +33,7 @@
 <form method="post" yee-module="validate" data-validate@mode="2">
     <div>
         <label>用户名：</label>
-        <div><input name="username" type="text" data-val='{"r":true}' data-val-msg='{"r":"请填写用户名"}'
+        <div><input name="username" type="text" data-val='{"r":true}' data-val-msg='{"r":"请填写用户名","remote":"错误"}'
                     yee-module="remote" data-remote@url="remote.php"
         ></div>
     </div>
