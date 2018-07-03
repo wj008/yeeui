@@ -22,7 +22,6 @@
         , message_range: '请输入一个介于 {0} 和 {1} 之间的值'
         , message_max: '请输入一个小于 {0} 的值'
         , message_min: '请输入一个大于 {0} 的值'
-        , message_remote: '检测数据不符合要求'
         , message_regex: '请输入正确格式字符'
         , message_mobile: '手机号码格式不正确'
         , message_idcard: '身份证号码格式不正确'
@@ -214,12 +213,6 @@
             'regex': function (val, str) {
                 var re = new RegExp(str).exec(val);
                 return (re && (re.index === 0) && (re[0].length === val.length));
-            },
-            'remote': function (val) {
-                if ($(this).data('remoteResult')) {
-                    return true;
-                }
-                return false;
             }
         },
         shortName: {
@@ -255,16 +248,8 @@
             //在加入其他
             for (var key in rules) {
                 var oir_key = this.getOirName(key);
-                if (oir_key !== 'remote' && oir_key !== 'required') {
+                if (oir_key !== 'required') {
                     tempRules[oir_key] = rules[key];
-                }
-            }
-            //最后加入 remote
-            for (var key in rules) {
-                var oir_key = this.getOirName(key);
-                if (oir_key === 'remote') {
-                    tempRules[oir_key] = rules[key];
-                    break;
                 }
             }
             return tempRules;
@@ -309,7 +294,6 @@
             valValid: data['valValid'] || '',
             valError: data['valError'] || '',
             valOff: data['valOff'],
-            remote: !!data['val']['remote'],
             errType: null,
             pass: true
         };
@@ -443,7 +427,13 @@
                     msg = Util.stringFormat(msg, data.rules[data.errType]);
                     errItems.push({elem: elem, msg: msg});
                 } else {
-                    if (!elem.getModuleInstance('remote')) {
+                    if (elem.getModuleInstance('remote')) {
+                        if (elem.data('remoteResult') == false) {
+                            errItems.push({elem: elem, msg: elem.data('remoteMessage') || '检查数据不符'});
+                        } else {
+                            self.setValid(elem, elem.data('remoteMessage') || '');
+                        }
+                    } else {
                         self.setValid(elem, data.valValid);
                     }
                 }
@@ -467,7 +457,6 @@
                 elem.emit('focus');
             }
         }
-
         this.displayAllError = function (errItems) {
             if (!errItems || errItems.length == 0) {
                 return;
@@ -533,6 +522,9 @@
         }
 
         qform.on('submit', function (ev) {
+            if (ev.result === false) {
+                return false;
+            }
             try {
                 return self.checkForm();
             } catch (e) {
@@ -602,7 +594,7 @@
                 label.removeClass(Config.field_error + ' ' + Config.field_default).addClass(Config.field_valid);
                 label.html(msg);
             } else {
-                elem.setDefault(msg);
+                elem.setDefault();
             }
         });
     }
