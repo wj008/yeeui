@@ -1,4 +1,4 @@
-(function ($, Yee, layer) {
+(function ($, Yee) {
 
     var clickTimeout = false;
     //AJAX提交连接
@@ -183,4 +183,4 @@
 
     });
 
-})(jQuery, Yee, layer);
+})(jQuery, Yee);
