@@ -46,6 +46,24 @@
         <div><input name="name2" type="text" data-val='{"r":true}' data-val-off='true' data-msg='{"r":"请填写姓名"}'></div>
     </div>
     <div>
+        <label>上传文件：</label>
+        <div>
+            <input name="upfile" type="text" yee-module="upload"
+                   data-upload@url="upload.php"
+                   data-val='{"r":true}'
+                   data-val-msg='{"r":"请上传文件"}'>
+        </div>
+    </div>
+    <div>
+        <label>上传图片：</label>
+        <div>
+            <input name="upimg" type="text" yee-module="upload" data-type="imggroup" data-multiple="true"
+                   data-upload@url="upload.php"
+                   data-val='{"r":true}'
+                   data-val-msg='{"r":"请上传文件"}'>
+        </div>
+    </div>
+    <div>
         <label>标签：</label>
         <div>
             <input id="tag1" name="tag" type="checkbox" value="1"
