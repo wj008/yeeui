@@ -423,6 +423,7 @@ export class YeeDatatable {
                 data.tdList.push(tdCols.eq(i));
             });
             if (th.data('order')) {
+                th.addClass('order');
                 th.on('click', orderFunc);
             }
             data.width = th.outerWidth();
