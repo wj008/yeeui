@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="../yee.js"></script>
+    <link rel="stylesheet" href="../css/yeeui.css">
+</head>
+<body>
+<table id="list" cellspacing="0" cellpadding="0" border="0" class="yee-datatable" yee-module="datatable"
+       data-bind-form="#searchform" data-auto-load="true" data-url="course.json" data-resize="true"
+       data-left-fixed="2"
+       data-right-fixed="1"
+       data-send-order="sort" width="100%">
+    <thead>
+    <tr>
+        <th width="40"><input type="checkbox" ></th>
+        <th data-order="id" align="center" width="40">id<i></i></th>
+        <th width="80">封面图片</th>
+        <th align="left" style="width: 500px">课程名称</th>
+        <th align="center" style="width: 500px">课程价格</th>
+        <th align="center">主讲老师</th>
+        <th align="center">课程栏目</th>
+        <th align="center">导航分类</th>
+        <th align="center">课程所属分类</th>
+        <th align="center">相关国家</th>
+        <th data-order="sort" align="center">排序权重<i></i></th>
+        <th align="center">评论数</th>
+        <th align="center">创建时间</th>
+        <th align="center">热门推荐</th>
+        <th align="center">是否启用</th>
+        <th width="180">操作</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr yee-template yee-item="rs">
+        <td width="40" align="center" :html="rs._0"></td>
+        <td align="center"><a href='dialog.html' yee-module="dialog" :text="rs._1"></a></td>
+        <td :html="(function(){console.log(rs);return rs._2;})()"></td>
+        <td align="left"  :html="rs._3"></td>
+        <td align="center" :html="rs._4">0.00 元</td>
+        <td align="center" :html="rs._5"><span class="gray2">李霆</span></td>
+        <td align="center" :text="rs._6">留学准备</td>
+        <td align="center" :text="rs._7">细说国外教育-低龄留学</td>
+        <td align="center" :text="rs._8">商科,理工科,文科,..</td>
+        <td align="center" :text="rs._9">新西兰</td>
+        <td align="center" :html="rs._10"></td>
+        <td align="center" :html="rs._11"></td>
+        <td align="center" :text="rs._12">2018-11-13 13:23:13</td>
+        <td align="center" :html="rs._13"><span class="gray2">-</span></td>
+        <td align="center" :html="rs._4"><span class="gray2">停用</span></td>
+        <td :html="rs._15"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

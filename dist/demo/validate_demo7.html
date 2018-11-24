@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="../yee.js"></script>
+</head>
+<body>
+<div>后台返回确认信息,成功后跳转到百度</div>
+<div>
+    <form action="ajax_form_fail.json" onback="console.log(ret);" yee-module="ajax confirm validate"
+          data-ajax@back-url="http://www.baidu.com"
+          data-confirm@url="confirm.json">
+        <div>用户名： <input name="name" value=""></div>
+        <div>密码： <input name="password" value=""></div>
+        <div><input type="submit" value="提交表单"></div>
+    </form>
+</div>
+</body>
+</html>

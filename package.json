@@ -1,0 +1,21 @@
+{
+  "name": "YeeUI",
+  "version": "1.0.0",
+  "description": "YeeUI 后台框架",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jquery": "^3",
+    "typescript": "^3",
+    "webpack": "^4",
+    "webpack-cli": "^3"
+  },
+  "scripts": {
+    "start": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/wj008/yeeui.git"
+  },
+  "author": "wj008",
+  "license": "ISC"
+}

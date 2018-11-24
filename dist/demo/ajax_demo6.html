@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="../yee.js"></script>
+    <link rel="stylesheet" href="../css/yeeui.css">
+</head>
+
+<body>
+
+<div>
+    <a href="ajax_fail.json" yee-module="ajax">请求失败数据</a>
+</div>
+
+<div>
+    <a href="ajax_success.json?name=123" yee-module="ajax confirm"
+       on-success="Yee.alert(ret.msg);return false;"
+       data-ajax@method="post" data-confirm@msg="你确认要提交了吗？">请求成功</a>
+</div>
+
+<div>
+    <a href="ajax_success.json?name=123" yee-module="ajax confirm"
+       on-success="Yee.alert(ret.msg)"
+       data-ajax@method="post" data-confirm@msg="你确认要提交了吗？">请求成功</a>
+    立即编辑：<input name="box" on-success="Yee.alert(ret.msg)" data-url="ajax_success.json" value="" yee-module="ajax"/>
+</div>
+
+<div>
+    <button yee-module="confirm" data-confirm@msg="你确认要弹出一个对话框吗？" onclick="alert('弹出窗口');">
+        点击弹出执行js
+    </button>
+</div>
+
+
+<div>
+    <form action="ajax_fail.json" on-fail="alert('失败了'+ret.msg);" yee-module="confirm ajax"
+          data-confirm@msg="你确认要提交表单了吗？">
+        <div>测试 <input value="test"></div>
+        <div><input type="submit" value="提交表单"></div>
+    </form>
+</div>
+
+<div>后台返回确认信息,成功后跳转到百度</div>
+<div>
+    <form action="ajax_success.json" on-back="Yee.alert(ret.msg);return false;" yee-module="ajax confirm validate"
+
+          data-confirm@url="confirm.json">
+        <div>用户名： <input name="name" value=""></div>
+        <div>密码： <input name="password" value=""></div>
+        <div><input type="submit" value="提交表单"></div>
+    </form>
+</div>
+
+<div>询问之前取消</div>
+<div>
+    <button id="confirm1" yee-module="confirm" data-confirm@msg="确认要删除所选择项了吗？">删除所选</button>
+    <label><input value="1" type="checkbox">测试1</label>
+    <label><input value="2" type="checkbox">测试1</label>
+    <label><input value="3" type="checkbox">测试1</label>
+    <script>
+        //加载 yee-popup 支持 Yee.msg
+        $(function () {
+            //监听询问验证之前是否选择，如果没有选择取消询问
+            $('#confirm1').on('confirm_before', function (ev) {
+                if ($(':input[type=checkbox]:checked').length == 0) {
+                    Yee.msg('还没有选择任何选项');
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
+</div>
+
+</body>
+</html>

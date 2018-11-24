@@ -1,0 +1,278 @@
+@font-face {
+  font-family: "YeeFont";
+  src: url("font/YeeFont.eot"); /* IE9 */
+  src: url("font/YeeFont.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */ url("font/YeeFont.woff") format("woff"), /* chrome firefox */ url("font/YeeFont.ttf") format("truetype"), /* chrome firefox opera safari, Android, iOS 4.2+ */ url("font/YeeFont.svg#uxfonteditor") format("svg"); /* iOS 4.1- */
+}
+
+//面板
+.yee-panel {
+  margin-bottom: 15px;
+  border-radius: 5px;
+  background: #fff;
+  padding: 15px 20px;
+  color: #606060;
+  box-shadow: 0 0 2px gray(0, 0.05);
+}
+
+.yee-panel-title {
+  border-bottom: 1px solid #e4eaec;
+  line-height: 40px;
+  position: relative;
+
+  h3 {
+    font-size: 16px;
+    color: #555
+  }
+
+  i {
+    color: #31b4e1;
+    float: left;
+    margin: 15px 10px 0 3px
+  }
+}
+
+.yee-panel-content {
+  padding-top: 15px
+}
+
+.yee-section {
+  line-height: 30px;
+  background: #FFF;
+  color: #606060;
+  clear: both;
+  display: table;
+  border: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.yee-section-caption {
+  text-align: right;
+  vertical-align: top;
+  width: 250px;
+}
+
+.yee-section-row, .yee-section-label {
+  display: table-cell;
+  font-weight: 400;
+  text-align: left;
+  padding: 3px 0;
+  vertical-align: middle;
+}
+
+.yee-section-label em {
+  font-style: normal;
+  margin-left: 5px;
+
+  &:before {
+    content: '*';
+    color: #E84C3D;
+    margin-right: 5px
+  }
+}
+
+.yee-section-inline {
+  display: inline-block;
+  padding: 0px;
+  margin-left: 10px;
+
+  :first-child {
+    margin-left: 0px;
+  }
+}
+
+.yee-submit {
+  padding: 15px 0 30px 0;
+  line-height: 30px;
+  clear: both;
+  display: table;
+}
+
+.yee-submit-row, .yee-submit-label {
+  display: table-cell;
+  font-weight: 400;
+  text-align: left;
+  padding: 3px;
+  vertical-align: middle;
+}
+
+a.yee-btn, input.yee-btn {
+  color: #555;
+  border: 1px solid #e1e1e1;
+  text-decoration: none;
+  height: 28px;
+  line-height: 28px;
+  font-size: 14px;
+  padding: 0 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-right: 15px;
+  opacity: 0.9;
+  display: inline-block;
+  vertical-align: middle;
+  background: #f7f7f7;
+ // text-shadow: 1px 1px white, -1px -1px #eee;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &.small {
+    height: 24px;
+    line-height: 24px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  &.submit {
+    height: 32px;
+    line-height: 32px;
+    border: 1px solid #fc5151;
+    color: #fff;
+    background: #fc5151
+  }
+
+  &.back, &.reset {
+    height: 32px;
+    line-height: 32px;
+    border: 1px solid #fc5151;
+    background-color: #fff;
+    color: #fc5151
+  }
+
+  &.blue {
+    border: 1px solid #32a3ff;
+    color: #fff;
+    background: #32a3ff;
+  }
+
+  &.normal {
+    border: 1px solid #a0a0a0;
+    background-color: #f1f1f1;
+    color: #909090;
+  }
+
+}
+
+.yee-inp {
+  border: 1px solid #e1e1e1;
+  border-radius: 3px;
+  line-height: 18px;
+  padding: 5px 10px;
+  transition: all .2s;
+  outline: none;
+  vertical-align: middle;
+
+  &[type="checkbox"] {
+    margin-right: 5px;
+    margin-left: 3px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  &[type="checkbox"] + span {
+    padding: 0 5px 0 25px;
+    margin-left: -22px;
+    border: 1px transparent dashed;
+    box-sizing: border-box;
+  }
+
+  &[type="checkbox"]:after {
+    font-family: 'YeeFont' !important;
+    content: "";
+    line-height: 12px;
+    height: 14px;
+    width: 14px;
+    display: inline-block;
+    background: #FFF;
+    border: 1px #e1e1e1 solid;
+    border-radius: 1px;
+    color: #999;
+    font-size: 18px;
+    margin-left: -1px;
+    margin-top: -8px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  &[type="checkbox"]:hover:after {
+    border: 1px #62b3ff solid;
+  }
+
+  &[type="checkbox"]:checked:after {
+    content: "\f0f4";
+    color: #52a3ff;
+  }
+
+  &[type="checkbox"]:disabled:after {
+    color: #999;
+    background: #EEE;
+  }
+
+  &[type="checkbox"]:disabled:hover:after {
+    border: 1px #dbdbdb solid;
+  }
+
+  &[type="radio"] {
+    margin-right: 6px;
+    margin-left: 2px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  &[type="radio"] + span {
+    padding: 0 5px 0 25px;
+    margin-left: -22px;
+    border: 1px transparent dashed;
+    box-sizing: border-box;
+  }
+
+  &[type="radio"]:after {
+    font-family: 'YeeFont' !important;
+    content: "";
+    line-height: 18px;
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    background: #FFF;
+    border: 1px #dbdbdb solid;
+    border-radius: 9px;
+    color: #999;
+    font-size: 14px;
+    margin-left: -2px;
+    margin-top: -8px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  &[type="radio"]:hover:after {
+    border: 1px #62b3ff solid;
+  }
+
+  &[type="radio"]:checked:after {
+    content: "\f104";
+    color: #52a3ff;
+  }
+
+  &[type="radio"]:disabled:after {
+    color: #999;
+    background: #EEE;
+  }
+
+  &[type="radio"]:disabled:hover:after {
+    border: 1px #dbdbdb solid;
+  }
+
+  &:focus {
+    border: 1px solid #62b3ff;
+  }
+
+  &.small {
+    line-height: 14px;
+    padding: 3px 5px
+  }
+}
+
+
+
