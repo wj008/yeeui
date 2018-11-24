@@ -139,7 +139,6 @@ export class YeeDatatable {
     }
 
     public init(data = null) {
-
         this.initColumn();
         this.initLeftFixed();
         this.initRightFixed();
