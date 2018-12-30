@@ -61,7 +61,7 @@ class YeeConfirm {
         $.ajax({
             type: opt.method,
             url: args.path,
-            data: args.prams,
+            data: args.param,
             cache: false,
             dataType: 'json',
             success: function (ret) {

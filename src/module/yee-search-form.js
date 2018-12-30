@@ -18,7 +18,7 @@ class YeeSearchForm {
             if (list.length > 0) {
                 list.each(function () {
                     // @ts-ignore
-                    $(this).emot('load', setting.url + '?' + sendData, true);
+                    $(this).emit('load', setting.url + '?' + sendData, {}, true);
                 });
             }
             return false;
@@ -26,16 +26,16 @@ class YeeSearchForm {
     }
     initForm() {
         let args = yee_1.Yee.parseUrl(window.location.href);
-        for (let name in args.prams) {
+        for (let name in args.param) {
             let box = this.qel.find(':input[name="' + name + '"]');
             if (box.length > 0) {
                 if (box.is(':radio') || box.is(':checkbox')) {
-                    if (box.val() == args.prams[name]) {
+                    if (box.val() == args.param[name]) {
                         box.prop("checked", true);
                     }
                 }
                 else {
-                    box.val(args.prams[name]);
+                    box.val(args.param[name]);
                 }
             }
         }

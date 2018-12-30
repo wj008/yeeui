@@ -20,7 +20,7 @@ export class YeeAjax {
                 let url = setting.url || $(this).attr('href');
                 let method = setting.method || 'get';
                 let info = Yee.parseUrl(url);
-                that.send(info.path, info.prams, method);
+                that.send(info.path, info.param, method);
                 return false;
             });
         }
@@ -65,9 +65,9 @@ export class YeeAjax {
                 let info = Yee.parseUrl(url);
                 let boxName = qel.attr('name') || '';
                 if (boxName) {
-                    info.prams[boxName] = val;
+                    info.param[boxName] = val;
                 }
-                that.send(info.path, info.prams, method);
+                that.send(info.path, info.param, method);
                 return false;
             });
         }
@@ -101,7 +101,7 @@ export class YeeAjax {
         }
     }
 
-    public send(path, prams, method) {
+    public send(path, param, method) {
         //防止误触双击
         if (YeeAjax.clickTimeout) {
             return false;
@@ -117,10 +117,36 @@ export class YeeAjax {
         }
         let data = {
             path: path,
-            prams: prams,
+            param: param,
             method: method,
             cache: true
         };
+        if (setting['carry']) {
+            let along = $(setting['carry']);
+            if (along.length > 0) {
+                along.each(function (idx, el) {
+                    let qel = $(el);
+                    if (!qel.is(':input')) {
+                        return;
+                    }
+                    let name = qel.attr('name') || qel.attr('id') || '';
+                    if (name == '') {
+                        return;
+                    }
+                    let val = qel.val() || '';
+                    if (qel.is(':radio')) {
+                        let name2 = qel.attr('name');
+                        let form = qel.parents('form:first');
+                        let box = form.find(':radio[name="' + name2 + '"]:checked');
+                        val = box.val() || '';
+                    }
+                    if (qel.is(':checkbox')) {
+                        val = qel.is(':checked') ? qel.val() : '';
+                    }
+                    data.param[name] = val;
+                });
+            }
+        }
         //提交之前的数据，可能修正
         // @ts-ignore
         if (qel.emit('before', data) === false) {
@@ -147,7 +173,7 @@ export class YeeAjax {
         $.ajax({
             type: data.method,
             url: data.path,
-            data: data.prams,
+            data: data.param,
             cache: data.cache,
             dataType: 'json',
             success: function (ret) {

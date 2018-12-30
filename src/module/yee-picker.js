@@ -1077,11 +1077,12 @@ class YeePicker extends yee_event_1.YeeEvent {
         let dw = $(document).width();
         let dh = $(document).height();
         this.picker.show();
+        let time = this.dateValue || new Date();
         if (this.setting.useTime) {
-            this.emit('setDateTime', this.dateValue);
+            this.emit('setDateTime', time);
         }
         else {
-            this.emit('setDate', this.dateValue);
+            this.emit('setDate', time);
         }
         dw = dw - this.picker.outerWidth(true) - 10;
         dh = dh - 300;

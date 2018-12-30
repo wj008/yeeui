@@ -11,7 +11,7 @@ export class YeeSelectDialog {
             textBox.attr('placeholder', qel.attr('placeholder'));
             qel.hide();
             let span = $('<span></span>').insertAfter(textBox);
-            let button = $('<a class="yee-btn" href="javascript:;" yee-module="dialog" style="margin-left: 5px">选择</a>').appendTo(span);
+            let button = $('<a class="form-btn" href="javascript:;" yee-module="dialog" style="margin-left: 5px">选择</a>').appendTo(span);
             if (setting.btnText) {
                 button.text(setting.btnText);
             }
@@ -44,7 +44,7 @@ export class YeeSelectDialog {
                 }
             });
             if (setting.clearBtn) {
-                let clearBtn = $('<a class="yee-btn" href="javascript:;" style="margin-left: 5px">清除</a>').appendTo(span);
+                let clearBtn = $('<a class="form-btn" href="javascript:;" style="margin-left: 5px">清除</a>').appendTo(span);
                 clearBtn.on('click', function () {
                     qel.val('');
                     textBox.val('');

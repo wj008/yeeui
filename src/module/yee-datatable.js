@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mover = require("./mover");
 const yee_1 = require("../yee");
+const yee_template_1 = require("./yee-template");
 class YeeDatatable {
     constructor(elem, setting) {
         this.id = '';
@@ -15,16 +16,17 @@ class YeeDatatable {
         //右列固定表格
         this.rightFixedColumn = [];
         this.rightFixedInLine = false;
-        this.trTemplate = null;
-        this.isEmptyData = true;
+        this.templates = [];
         this.checkAllFunc = null;
         this.lastSend = null;
+        this.isInitEvent = false;
+        this.tableBWidth = 0;
         /**
          * 初始化左边固定区域
          */
         this.initLeftFixed = function () {
             let setting = this.setting;
-            if (setting.leftFixed <= 0) {
+            if (!setting.leftFixed || setting.leftFixed <= 0) {
                 return;
             }
             let qel = this.qel;
@@ -50,24 +52,32 @@ class YeeDatatable {
             else {
                 table = tableInside.children('table');
             }
+            //---------------------------
+            let thead = table.find('thead tr');
+            let tbody = table.find('tbody').empty();
+            let first = false;
+            if (!this.leftFixedColumn || this.leftFixedColumn.length == 0) {
+                thead.empty();
+                first = true;
+            }
             let fixed = this.leftFixedColumn = [];
             for (let i = 0; i < setting.leftFixed && i < column.length; i++) {
                 fixed.push(column[i]);
             }
-            let thead = table.find('thead tr').empty();
-            let tbody = table.find('tbody').empty();
             let trTpl = qel.find('tbody tr:first');
             if (trTpl.length == 0) {
-                this.updateRightFixed();
                 this.syncHeight();
+                this.updateRightFixed();
                 return;
             }
             //行
             let trList = [];
             for (let item of fixed) {
-                let th = item.th;
-                this.clone(th);
-                $(th).appendTo(thead);
+                if (first) {
+                    let th = item.th;
+                    this.clone(th);
+                    $(th).appendTo(thead);
+                }
                 let tdList = item.tdList;
                 for (let n = 0; n < tdList.length; n++) {
                     let td = tdList[n];
@@ -85,7 +95,20 @@ class YeeDatatable {
                 }
                 tr.appendTo(tbody);
             }
-            //处理拖动
+            //设置表格宽
+            let temp = 0;
+            for (let item of fixed) {
+                let cl = item.th[0]['__clone'];
+                let th = item.th;
+                temp += (cl.outerWidth(true) - th.outerWidth(true));
+            }
+            table.width(table.width() + temp);
+            //处理拖动-------------
+            if (!first) {
+                that.syncHeight();
+                that.updateRightFixed();
+                return;
+            }
             for (let data of fixed) {
                 let th = data.th;
                 if (!th.get(0)['__clone'] || !setting.resize) {
@@ -100,34 +123,32 @@ class YeeDatatable {
                 });
                 data.cover.on('mousedown', data, function (ev) {
                     let item = ev.data;
-                    let oldWidth = item.width - item.wBorder; //原来内宽
-                    let oldTbWidth = table.outerWidth(true); //原来表格宽
-                    let oldOrgTbWidth = qel.outerWidth(true); //原来表格宽
+                    let oldWidth = item.width; //原来内宽
+                    let oldTableWidth = qel.width();
+                    let oldFTbWidth = table.width();
                     that.tableLayer.addClass('resize');
                     mover.start(ev, function (oldPt, newPt) {
                         let left = newPt.left - oldPt.left;
-                        let width = oldWidth + left;
+                        let th = item.th;
+                        let width = (oldWidth - item.wBorder) + left;
                         if (width < 30) {
                             width = 30;
-                            left = width - oldWidth;
                         }
-                        tableInside.width(oldTbWidth + left + 1000);
-                        that.tableInside.width(oldOrgTbWidth + left + 1000);
-                        let th = item.th;
+                        left = width - (oldWidth - item.wBorder);
+                        //设置宽
+                        qel.width(oldTableWidth + left);
+                        table.width(oldFTbWidth + left);
                         th.width(width); //设置宽
-                        th.get(0)['__clone'].width(width);
+                        th.get(0)['__clone'].width(width); //设置宽
                         item.width = th.outerWidth(true); //重新获得宽
-                        that.reDrawCover();
+                        left = item.width - oldWidth;
+                        qel.width(oldTableWidth + left);
+                        table.width(oldFTbWidth + left);
                         that.syncHeight();
-                        tableInside.width(table.outerWidth(true));
-                        that.tableInside.width(qel.outerWidth(true));
                         that.updateRightFixed();
                     }, function () {
                         that.tableLayer.removeClass('resize');
-                        that.reDrawCover();
                         that.syncHeight();
-                        tableInside.width(table.outerWidth());
-                        that.tableInside.width(qel.outerWidth(true));
                         that.updateRightFixed();
                     });
                 });
@@ -139,7 +160,7 @@ class YeeDatatable {
          */
         this.initRightFixed = function () {
             let setting = this.setting;
-            if (setting.rightFixed <= 0) {
+            if (!setting.rightFixed || setting.rightFixed <= 0) {
                 return;
             }
             let qel = this.qel;
@@ -165,12 +186,17 @@ class YeeDatatable {
             else {
                 table = tableInside.children('table');
             }
+            let thead = table.find('thead tr');
+            let tbody = table.find('tbody').empty();
+            let first = false;
+            if (!this.rightFixedColumn || this.rightFixedColumn.length == 0) {
+                thead.empty();
+                first = true;
+            }
             let fixed = this.rightFixedColumn = [];
             for (let i = column.length - setting.rightFixed; i < column.length; i++) {
                 fixed.push(column[i]);
             }
-            let thead = table.find('thead tr').empty();
-            let tbody = table.find('tbody').empty();
             let trTpl = qel.find('tbody tr:first');
             if (trTpl.length == 0) {
                 this.updateRightFixed();
@@ -179,9 +205,11 @@ class YeeDatatable {
             //行
             let trList = [];
             for (let item of fixed) {
-                let th = item.th;
-                this.clone(th);
-                $(th).appendTo(thead);
+                if (first) {
+                    let th = item.th;
+                    this.clone(th);
+                    $(th).appendTo(thead);
+                }
                 let tdList = item.tdList;
                 for (let n = 0; n < tdList.length; n++) {
                     let td = tdList[n];
@@ -199,7 +227,20 @@ class YeeDatatable {
                 }
                 tr.appendTo(tbody);
             }
+            //设置表格宽
+            let temp = 0;
+            for (let item of fixed) {
+                let cl = item.th[0]['__clone'];
+                let th = item.th;
+                temp += (cl.outerWidth(true) - th.outerWidth(true));
+            }
+            table.width(table.width() + temp);
             //处理拖动
+            if (!first) {
+                that.syncHeight();
+                that.updateRightFixed();
+                return;
+            }
             for (let data of fixed) {
                 let th = data.th;
                 if (!th.get(0)['__clone'] || !setting.resize) {
@@ -223,36 +264,35 @@ class YeeDatatable {
                 }
                 data.cover.on('mousedown', data, function (ev) {
                     let item = ev.data;
-                    let oldWidth = item.width - item.wBorder; //原来内宽
-                    let oldTbWidth = table.outerWidth(true); //原来表格宽
-                    let oldOrgTbWidth = qel.outerWidth(true); //原来表格宽
+                    let oldWidth = item.width; //原来内宽
+                    let oldTableWidth = qel.width();
+                    let oldFTbWidth = table.width();
                     that.tableLayer.addClass('resize');
                     mover.start(ev, function (oldPt, newPt) {
                         let left = oldPt.left - newPt.left;
+                        let th = item.th;
                         if (that.rightFixedInLine) {
                             left = -left;
                         }
-                        let width = oldWidth + left;
+                        let width = (oldWidth - item.wBorder) + left;
                         if (width < 30) {
                             width = 30;
-                            left = width - oldWidth;
                         }
-                        tableInside.width(oldTbWidth + left + 1000);
-                        that.tableInside.width(oldOrgTbWidth + left + 1000);
-                        let th = item.th;
+                        left = width - (oldWidth - item.wBorder);
+                        //设置宽
+                        qel.width(oldTableWidth + left);
+                        table.width(oldFTbWidth + left);
                         th.width(width); //设置宽
                         th.get(0)['__clone'].width(width);
                         item.width = th.outerWidth(true); //重新获得宽
-                        that.reDrawCover();
+                        left = item.width - oldWidth;
+                        qel.width(oldTableWidth + left);
+                        table.width(oldFTbWidth + left);
                         that.syncHeight();
-                        tableInside.width(table.outerWidth(true));
-                        that.tableInside.width(qel.outerWidth(true));
+                        that.reDrawCover();
                     }, function () {
                         that.tableLayer.removeClass('resize');
-                        that.reDrawCover();
                         that.syncHeight();
-                        tableInside.width(table.outerWidth(true));
-                        that.tableInside.width(qel.outerWidth(true));
                         that.updateRightFixed();
                     });
                 });
@@ -261,6 +301,7 @@ class YeeDatatable {
             this.updateRightFixed();
         };
         let qel = this.qel = $(elem);
+        let that = this;
         this.id = (function () {
             let id = qel.attr('id') || YeeDatatable.getNextId();
             if (!qel.attr('id')) {
@@ -268,14 +309,9 @@ class YeeDatatable {
             }
             return id;
         })();
-        let temp = qel.find('tbody tr[yee-template]');
-        if (temp.length > 0) {
-            this.trTemplate = temp.clone();
-            temp.remove();
-        }
-        else {
-            this.trTemplate = null;
-        }
+        qel.find('[yee-template]').each(function (_, it) {
+            that.templates.push(new yee_template_1.YeeTemplate(it));
+        });
         this.setting = setting;
         if (setting.leftFixed) {
             setting.leftFixed = parseInt(setting.leftFixed);
@@ -303,29 +339,28 @@ class YeeDatatable {
         this.tableInside = qel.parent('.yee-datatable-inside');
         //头部
         this.tableHeader = $('<div class="yee-datatable-header"></div>').prependTo(this.tableLayer);
-        let that = this;
         this.initCacheSize();
         if (setting.autoLoad) {
-            this.load(setting.url, null, true).then(function (ret) {
-                that.init(ret);
+            this.load(setting.url, null, setting.showMessage || false).then(function (ret, url) {
+                that.init(ret, url);
             });
         }
         else {
             that.init();
         }
         qel.on('reload', function (ev, showMessage) {
-            that.reload(showMessage).then(function (ret) {
-                that.init(ret);
+            that.reload(showMessage).then(function (ret, url) {
+                that.init(ret, url);
             });
         });
         qel.on('reset', function (ev, showMessage) {
-            that.reset(showMessage).then(function (ret) {
-                that.init(ret);
+            that.reset(showMessage).then(function (ret, url) {
+                that.init(ret, url);
             });
         });
         qel.on('load', function (ev, url = null, prams = {}, showMessage = false) {
-            that.load(url, prams, showMessage).then(function (ret) {
-                that.init(ret);
+            that.load(url, prams, showMessage).then(function (ret, url) {
+                that.init(ret, url);
             });
         });
     }
@@ -354,25 +389,27 @@ class YeeDatatable {
         }
         return null;
     }
-    init(data = null) {
+    init(data = null, url = null) {
         this.initColumn();
         this.initLeftFixed();
         this.initRightFixed();
         this.initEvent();
         if (data) {
             // @ts-ignore
-            this.qel.emit('change', data);
+            this.qel.emit('render', data, url);
         }
     }
     //初始化缓存中的尺寸
     initCacheSize() {
         let qel = this.qel;
         let setting = this.setting;
+        //可以调整尺寸的
         if (setting.resize) {
             this.qel.removeAttr('width');
             this.qel.css({ 'width': 'auto' });
             let thRows = qel.find('thead th');
             let data = YeeDatatable.getStorage(this.tbName);
+            //先调整最大
             this.tableInside.width(qel.outerWidth(true) + 10000);
             for (let i = 0; i < thRows.length; i++) {
                 let th = thRows.eq(i);
@@ -384,7 +421,8 @@ class YeeDatatable {
                 }
                 th.removeAttr('width');
             }
-            this.tableInside.width(qel.outerWidth(true));
+            qel.width(qel.width());
+            this.tableInside.width('auto');
         }
         else {
             let thRows = qel.find('thead th');
@@ -431,9 +469,12 @@ class YeeDatatable {
     initEvent() {
         let that = this;
         let qel = this.qel;
-        $(window).on('resize', function () {
-            that.updateRightFixed();
-        });
+        //如果是第一次初始化
+        if (!this.isInitEvent) {
+            $(window).on('resize', function () {
+                that.updateRightFixed();
+            });
+        }
         let trList = qel.find('tbody tr');
         trList.on('mouseenter', function () {
             $(this).addClass('hover');
@@ -480,37 +521,44 @@ class YeeDatatable {
                 that.syncBackground(2);
             });
         }
-        if (this.checkAllFunc == null) {
-            this.checkAllFunc = function () {
-                let checkBtn = $(this);
-                let table = checkBtn.parents('table:first');
-                let th = checkBtn.parents('th:first');
-                let index = -1;
-                let checked = checkBtn.prop('checked');
-                table.find('thead th').each(function (idx, item) {
-                    if (item == th.get(0)) {
-                        index = idx;
-                        return false;
-                    }
-                });
-                if (index >= 0) {
-                    table.find('tbody tr').each(function (_, trElem) {
-                        let box = $(trElem).find('td').eq(index).find(':checkbox');
-                        box.prop('checked', checked);
+        //如果之前没有初始化
+        if (!this.isInitEvent) {
+            if (this.checkAllFunc == null) {
+                this.checkAllFunc = function () {
+                    let checkBtn = $(this);
+                    let table = checkBtn.parents('table:first');
+                    let th = checkBtn.parents('th:first');
+                    let index = -1;
+                    let checked = checkBtn.prop('checked');
+                    table.find('thead th').each(function (idx, item) {
+                        if (item == th.get(0)) {
+                            index = idx;
+                            return false;
+                        }
                     });
+                    if (index >= 0) {
+                        table.find('tbody tr').each(function (_, trElem) {
+                            let box = $(trElem).find('td').eq(index).find(':checkbox');
+                            box.prop('checked', checked);
+                        });
+                    }
+                };
+            }
+            //设置全选
+            for (let item of this.column) {
+                let checkBtn = item.th.find(':checkbox');
+                if (checkBtn.length > 0) {
+                    if (that.checkAllFunc) {
+                        checkBtn.off('click', that.checkAllFunc);
+                    }
+                    checkBtn.on('click', that.checkAllFunc);
                 }
-            };
-        }
-        //设置全选
-        for (let item of this.column) {
-            let checkBtn = item.th.find(':checkbox');
-            if (checkBtn.length > 0) {
-                if (that.checkAllFunc) {
-                    checkBtn.off('click', that.checkAllFunc);
-                }
-                checkBtn.on('click', that.checkAllFunc);
             }
         }
+        this.isInitEvent = true;
+        setTimeout(function () {
+            that.reDrawCover();
+        }, 10);
     }
     /**
      * 同步背景样式
@@ -594,14 +642,32 @@ class YeeDatatable {
     initColumn() {
         let setting = this.setting;
         let qel = this.qel;
-        let thRows = qel.find('thead th');
-        let trRows = qel.find('tbody tr');
         let that = this;
+        let trRows = qel.find('tbody tr');
+        if (this.column && this.column.length > 0) {
+            let len = this.column.length;
+            for (let i = 0; i < len; i++) {
+                let data = this.column[i];
+                data.tdList = [];
+                trRows.each(function (_, elem) {
+                    let tdCols = $(elem).find('td');
+                    if (tdCols.length != len) {
+                        return;
+                    }
+                    data.tdList.push(tdCols.eq(i));
+                });
+            }
+            that.syncHeight();
+            that.updateRightFixed();
+            return;
+        }
+        let thRows = qel.find('thead th');
         for (let item of this.column) {
             if (item.cover) {
                 item.cover.remove();
             }
         }
+        //排序相关
         let orderFunc = function () {
             let thItem = $(this);
             let name = thItem.data('order');
@@ -623,27 +689,34 @@ class YeeDatatable {
                 qel.emit('order', { name: name, order: -1 });
             }
         };
+        let tableWidth = 0;
         this.column = [];
         for (let i = 0; i < thRows.length; i++) {
             let th = thRows.eq(i);
             let data = {
                 width: 0,
+                wBorder: 0,
                 th: th,
                 tdList: [],
                 cover: null,
-                fixed: 0,
-                wBorder: 0
+                fixed: 0
             };
+            //装入TD列
             trRows.each(function (_, elem) {
                 let tdCols = $(elem).find('td');
+                if (tdCols.length != thRows.length) {
+                    return;
+                }
                 data.tdList.push(tdCols.eq(i));
             });
+            //Order
             if (th.data('order')) {
                 th.addClass('order');
                 th.on('click', orderFunc);
             }
-            data.width = th.outerWidth();
+            data.width = th.outerWidth(true);
             data.wBorder = th.outerWidth(true) - th.width();
+            tableWidth += data.width; //计算宽
             let offLeft = th[0].offsetLeft;
             if (setting.leftFixed > 0 && i < setting.leftFixed) {
                 data.fixed = 1;
@@ -658,43 +731,46 @@ class YeeDatatable {
                     top: 0,
                     height: th.outerHeight()
                 });
-                data.cover.on('mousedown', data, function (ev) {
-                    let item = ev.data;
+                data.cover.on('mousedown', i, function (ev) {
+                    let item = that.column[ev.data];
                     if (item.fixed) {
                         return false;
                     }
-                    let oldWidth = item.width - item.wBorder; //原来内宽
-                    let oldTbWidth = qel.outerWidth(true); //原来表格宽
+                    let oldTableWidth = qel.width();
+                    let oldWidth = item.width;
                     that.tableLayer.addClass('resize');
                     mover.start(ev, function (oldPt, newPt) {
+                        let th = item.th;
                         let left = newPt.left - oldPt.left;
-                        let width = oldWidth + left;
+                        let width = (oldWidth - item.wBorder) + left;
                         if (width < 30) {
                             width = 30;
-                            left = width - oldWidth;
                         }
-                        //拉宽，表格提前拉开
-                        that.tableInside.width(oldTbWidth + left + 1000);
-                        let th = item.th;
+                        left = width - (oldWidth - item.wBorder);
+                        //console.log('width1', oldTableWidth + left);
+                        //先尝试缩小
+                        qel.width(oldTableWidth + left);
                         th.width(width); //设置宽
                         item.width = th.outerWidth(true); //重新获得宽
-                        that.reDrawCover();
-                        that.syncHeight();
-                        //收缩 表格跟随收缩
-                        that.tableInside.width(qel.outerWidth(true));
+                        qel.width(oldTableWidth + item.width - oldWidth);
+                        //console.log('width2', oldTableWidth + item.width - oldWidth);
+                        that.syncHeight(); //同步高
                         that.updateRightFixed();
                     }, function () {
                         that.tableLayer.removeClass('resize');
-                        that.reDrawCover();
                         that.syncHeight();
-                        that.tableInside.width(qel.outerWidth(true));
                         that.updateRightFixed();
                     });
                 });
             }
             this.column.push(data);
         }
+        this.tableBWidth = qel.width() - tableWidth;
     }
+    /**
+     * 获取选中数据
+     * @param name
+     */
     getCheckData(name = null) {
         let values = [];
         for (let item of this.column) {
@@ -765,10 +841,12 @@ class YeeDatatable {
      */
     clone(qe) {
         let elem = qe.get(0);
-        let cp = elem['__clone'] = qe.clone();
-        cp.css({ 'pointer-events': 'none', 'opacity': 0 });
-        // th.replaceWith(cp); 3.3.1 jq 存在替换节点会删除原来事件
-        qe.parent().get(0).replaceChild(cp.get(0), elem);
+        if (elem) {
+            let cp = elem['__clone'] = qe.clone();
+            cp.css({ 'pointer-events': 'none', 'opacity': 0 });
+            // th.replaceWith(cp); 3.3.1 jq 存在替换节点会删除原来事件
+            qe.parent().get(0).replaceChild(cp.get(0), elem);
+        }
     }
     /**
      * 更新右边
@@ -799,7 +877,7 @@ class YeeDatatable {
      * @param source
      */
     render(source) {
-        if (this.trTemplate == null) {
+        if (this.templates.length == 0) {
             console.error('未定义渲染模板!');
             return;
         }
@@ -825,85 +903,18 @@ class YeeDatatable {
                 }
             }
         }
-        let tbody = qel.find('tbody').empty();
-        if (list.length == 0) {
-            this.isEmptyData = true;
-            let emptyText = this.setting.emptyText || '没有找到任何数据!';
-            let trTpl = this.trTemplate.clone();
-            trTpl.empty();
-            let td = $('<td colspan="1000" style="text-align: center"></td>').text(emptyText);
-            td.appendTo(trTpl);
-            tbody.append(trTpl);
-            return;
+        for (let template of this.templates) {
+            template.render({ list: list, pageInfo: source.pageInfo || {} });
+            yee_1.Yee.update(template.parent());
         }
-        let temp = this.trTemplate.html().match(/\s:[a-z0-9_-]+\s*=/ig);
-        let assign = this.trTemplate.attr('yee-item') || 'it';
-        //console.log(assign);
-        let tempMap = {};
-        if (temp) {
-            for (let item of temp) {
-                let name = String(item).replace(/\s(:[a-z0-9_-]+)\s*=/i, '$1');
-                name = name.toLowerCase();
-                tempMap[name] = '[' + name.replace(/^:/, '\\:') + ']';
-            }
-        }
-        //console.log(tempMap);
-        for (let item of list) {
-            let trTpl = this.trTemplate.clone();
-            trTpl.removeAttr('yee-template');
-            for (let name in tempMap) {
-                let find = tempMap[name];
-                trTpl.find(find).each(function () {
-                    let el = $(this);
-                    let text = (function () {
-                        let code = String(el.attr(name) || '').trim();
-                        if (code) {
-                            if (code.substr(0, 1) == '@') {
-                                return code.substr(1);
-                            }
-                            try {
-                                code = 'return (' + code.trim() + ');';
-                                let func = new Function(assign, code);
-                                //console.log(func);
-                                if (typeof func == 'function') {
-                                    return func(item);
-                                }
-                            }
-                            catch (e) {
-                                return '';
-                            }
-                        }
-                        return '';
-                    })();
-                    switch (name) {
-                        case ':text':
-                            el.text(text);
-                            break;
-                        case ':value':
-                            el.val(text);
-                            break;
-                        case ':html':
-                            el.html(text);
-                            break;
-                        default:
-                            let attr = name.replace(/^:/, '');
-                            el.attr(attr, text);
-                            break;
-                    }
-                    el.removeAttr(name);
-                });
-            }
-            tbody.append(trTpl);
-        }
-        yee_1.Yee.update(tbody);
     }
     /**
      * 加载
      * @param url
      * @param showMessage
-     * @param prams
+     * @param param
      */
-    load(url = null, prams = {}, showMessage = false) {
+    load(url = null, param = {}, showMessage = false) {
         let deferred = $.Deferred();
         let qel = this.qel;
         let that = this;
@@ -911,17 +922,17 @@ class YeeDatatable {
         let method = this.setting.method || 'get';
         let args = yee_1.Yee.parseUrl(url);
         args.path = args.path || window.location.pathname;
-        for (let key in prams) {
-            args.prams[key] = prams[key];
+        for (let key in param) {
+            args.param[key] = param[key];
         }
         this.lastSend = {
             url: args.path,
-            data: args.prams
+            data: args.param
         };
         $.ajax({
             type: method,
             url: args.path,
-            data: args.prams,
+            data: args.param,
             cache: false,
             dataType: 'json',
             success: function (ret) {
@@ -932,12 +943,12 @@ class YeeDatatable {
                     }
                     that.render(ret);
                     // @ts-ignore
-                    qel.emit('success', ret);
-                    deferred.resolve(ret);
+                    qel.emit('success', ret, yee_1.Yee.toUrl(args));
+                    deferred.resolve(ret, yee_1.Yee.toUrl(args));
                 }
                 //拉取数据错误
                 if (ret.status === false) {
-                    if (showMessage && ret.msg && typeof (ret.msg) === 'string') {
+                    if (ret.msg && typeof (ret.msg) === 'string') {
                         yee_1.Yee.msg(ret.msg, { icon: 0, time: 2000 });
                     }
                     // @ts-ignore

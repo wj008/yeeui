@@ -14,10 +14,16 @@ const yee_datatable_1 = require("./module/yee-datatable");
 const yee_pagebar_1 = require("./module/yee-pagebar");
 const yee_search_form_1 = require("./module/yee-search-form");
 const yee_select_dialog_1 = require("./module/yee-select-dialog");
-const yee_combine_1 = require("./module/yee-combine");
+const yee_container_1 = require("./module/yee-container");
 const yee_form_tab_1 = require("./module/yee-form-tab");
 const yee_dynamic_1 = require("./module/yee-dynamic");
-const yee_xheditor_1 = require("./module/yee-xheditor");
+const yee_xh_editor_1 = require("./module/yee-xh-editor");
+const yee_template_1 = require("./module/yee-template");
+const yee_delay_select_1 = require("./module/yee-delay-select");
+const yee_choice_1 = require("./module/yee-choice");
+const yee_multiple_dialog_1 = require("./module/yee-multiple-dialog");
+const yee_list_tab_1 = require("./module/yee-list-tab");
+const yee_tinymce_1 = require("./module/yee-tinymce");
 class Yee {
     /**
      * 加载文件
@@ -119,12 +125,15 @@ class Yee {
                 }
                 let file = module;
                 if (!/^css\!/i.test(module) && !/\.js$/i.test(module)) {
+                    //按指定路径
                     if (paths && paths[module]) {
                         file = paths[module];
                     }
+                    //按配置文件
                     else if (Yee._config.modules[module]) {
                         file = Yee._config.modules[module];
                     }
+                    //默认查找
                     else {
                         if (/^yee-/.test(module)) {
                             file = module.replace(/^yee-/, 'module/yee-') + '.js';
@@ -134,16 +143,28 @@ class Yee {
                         }
                     }
                 }
-                if (file == null || file == '') {
+                if (file === null || file === '') {
                     continue;
                 }
-                if (Yee._loadedFiles[file]) {
-                    let promise = Yee._loadedFiles[file];
-                    loadMaps.push(promise);
-                    continue;
+                let addFile = function (item) {
+                    if (Yee._loadedFiles[item]) {
+                        let promise = Yee._loadedFiles[item];
+                        loadMaps.push(promise);
+                    }
+                    else {
+                        let promise = Yee._loadedFiles[item] = Yee.loader(item);
+                        loadMaps.push(promise);
+                    }
+                };
+                //如果是多个文件
+                if (Yee.isArray(file)) {
+                    for (let item of file) {
+                        addFile(item);
+                    }
                 }
-                let promise = Yee._loadedFiles[file] = Yee.loader(file);
-                loadMaps.push(promise);
+                else {
+                    addFile(file);
+                }
             }
             if (loadMaps.length == 0) {
                 deferred.resolve();
@@ -188,13 +209,37 @@ class Yee {
         }
         return deferred;
     }
+    //顺序加载
+    static seq(modules, paths = null) {
+        let deferred = $.Deferred();
+        if (modules === null) {
+            return deferred.resolve();
+        }
+        if (typeof modules == 'string' && modules != '') {
+            modules = [modules];
+        }
+        if (!(modules instanceof Array) || modules.length == 0) {
+            return deferred.resolve();
+        }
+        let index = 0;
+        let next = function () {
+            if (index >= modules.length) {
+                return deferred.resolve();
+            }
+            let module = modules[index];
+            Yee.use(module, paths).then(next);
+            index++;
+        };
+        next();
+        return deferred;
+    }
     /**
      * 解析url
      */
     static parseUrl(url = '') {
         let query = url.replace(/&+$/, '');
         let path = query;
-        let prams = {};
+        let param = {};
         let hash = '';
         let hIdx = query.search(/#/);
         if (hIdx >= 0) {
@@ -211,12 +256,12 @@ class Yee {
                     let ma = String(str).match(/^(\w+)(?:=([^&]*))?$/);
                     if (ma) {
                         let val = ma[2] || '';
-                        prams[ma[1]] = decodeURIComponent(val.replace(/\+/g, '%20'));
+                        param[ma[1]] = decodeURIComponent(val.replace(/\+/g, '%20'));
                     }
                 });
             }
         }
-        return { path: path, prams: prams, hash: hash };
+        return { path: path, param: param, hash: hash };
     }
     /**
      * 转成url
@@ -224,16 +269,16 @@ class Yee {
      */
     static toUrl(info = {}) {
         let path = info.path || window.location.pathname;
-        let prams = info.prams || {};
+        let param = info.param || {};
         let qurey = [];
-        for (let key in prams) {
-            if (prams[key] == null || prams[key] == '') {
+        for (let key in param) {
+            if (param[key] == null || param[key] == '') {
                 qurey.push(key + '=');
                 continue;
             }
-            let values = (prams[key] + '').split(' ');
+            let values = (param[key] + '').split(' ');
             if (values.length == 1) {
-                qurey.push(key + '=' + encodeURIComponent(prams[key]));
+                qurey.push(key + '=' + encodeURIComponent(param[key]));
                 continue;
             }
             for (let i = 0; i < values.length; i++) {
@@ -557,11 +602,11 @@ class Yee {
         }
         return layer.closeAll(type);
     }
-    static dialog(url, title = '网页对话框', setting = {}, callWindow = window) {
+    static dialog(url, title = '网页对话框', setting = {}, callWindow = window, qel = null) {
         if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].dialog(url, title, setting, window);
+            return window.top['Yee'].dialog(url, title, setting, window, qel);
         }
-        return yee_dialog_1.YeeDialog.open(url, title, setting, callWindow);
+        return yee_dialog_1.YeeDialog.open(url, title, setting, callWindow, qel);
     }
     static emit(event, ...data) {
         return Yee.event.emit(event, ...data);
@@ -596,6 +641,23 @@ class Yee {
      */
     static isObject(val) {
         return val != null && typeof val === 'object' && Array.isArray(val) === false;
+    }
+    static randomString(len = 32) {
+        let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+        let maxPos = chars.length;
+        let run = '';
+        for (let i = 0; i < len; i++) {
+            run += chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return run;
+    }
+    static getTemplate(tplId) {
+        for (let temp in yee_template_1.YeeTemplate.instance) {
+            if (temp == tplId) {
+                return yee_template_1.YeeTemplate.instance[temp];
+            }
+        }
+        return null;
     }
 }
 Yee.version = '1.0.0';
@@ -644,7 +706,7 @@ $.fn.extend({
 });
 //*********************************************************************************
 //注册插件
-Yee.extend('ajax', 'a,form,:input', yee_ajax_1.YeeAjax);
+Yee.extend('template', '*', yee_template_1.YeeTemplate);
 Yee.extend('confirm', ':input,button,form,a', yee_confirm_1.YeeConfirm);
 Yee.extend('validate', 'form', yee_validate_1.YeeValidate);
 Yee.extend('remote', ':input', yee_remote_1.YeeRemote);
@@ -655,13 +717,19 @@ Yee.extend('picker', ':input', yee_picker_1.YeePicker);
 Yee.extend('dialog', 'a,button,input', yee_dialog_1.YeeDialog);
 Yee.extend('linkage', ':input', yee_linkage_1.YeeLinkage);
 Yee.extend('select-dialog', ':input,a', yee_select_dialog_1.YeeSelectDialog);
+Yee.extend('multiple-dialog', ':input', yee_multiple_dialog_1.YeeMultipleDialog);
 Yee.extend('pagebar', 'div', yee_pagebar_1.YeePagebar);
 Yee.extend('search-form', 'form', yee_search_form_1.YeeSearchForm);
 Yee.extend('datatable', 'table', yee_datatable_1.YeeDatatable);
-Yee.extend('combine', 'div', yee_combine_1.YeeCombine);
+Yee.extend('container', 'div', yee_container_1.YeeContainer);
 Yee.extend('form-tab', 'ul', yee_form_tab_1.YeeFormTab);
+Yee.extend('list-tab', 'ul', yee_list_tab_1.YeeListTab);
 Yee.extend('dynamic', ':input', yee_dynamic_1.YeeDynamic);
-Yee.extend('xheditor', ':input', yee_xheditor_1.YeeXheditor);
+Yee.extend('xh-editor', ':input', yee_xh_editor_1.YeeXhEditor);
+Yee.extend('tinymce', ':input', yee_tinymce_1.YeeTinymce);
+Yee.extend('choice', 'a', yee_choice_1.YeeChoice);
+Yee.extend('ajax', 'a,form,:input', yee_ajax_1.YeeAjax);
+Yee.extend('delay-select', 'select', yee_delay_select_1.YeeDelaySelect);
 Yee.init();
 window['Yee'] = Yee;
 //# sourceMappingURL=yee.js.map

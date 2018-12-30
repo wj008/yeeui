@@ -6,7 +6,7 @@ class YeeValidate {
         //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         this.fields = null;
         this.form = null;
-        this.tempValFor = null;
+        this.tempValOutput = null;
         let qForm = this.form = $(form);
         this.validateMode = setting.mode || 0;
         let that = this;
@@ -274,6 +274,9 @@ class YeeValidate {
             if (!data.pass && !rule['force'] && val === '') {
                 return data;
             }
+            if (val === '') {
+                continue;
+            }
             let args = rule[key];
             if (!yee_1.Yee.isArray(args)) {
                 args = [args];
@@ -293,7 +296,7 @@ class YeeValidate {
             return false;
         }
         let that = this;
-        this.tempValFor = {};
+        this.tempValOutput = {};
         let errItems = [];
         let inputs = this.getFields(true);
         inputs.each(function (index, element) {
@@ -393,11 +396,11 @@ class YeeValidate {
         let data = YeeValidate.getFieldData(elem);
         let output = data.output;
         if (output !== '') {
-            if (this.tempValFor[output] === void 0) {
-                this.tempValFor[output] = msg;
+            if (this.tempValOutput[output] === void 0) {
+                this.tempValOutput[output] = msg;
             }
             else {
-                msg = this.tempValFor[output];
+                msg = this.tempValOutput[output];
             }
         }
         elem.setError(msg, this.validateMode);
@@ -413,7 +416,7 @@ class YeeValidate {
     setCorrect(elem, msg) {
         let data = YeeValidate.getFieldData(elem);
         let output = data.output;
-        if (output !== '' && this.tempValFor[output] !== void 0) {
+        if (output !== '' && this.tempValOutput[output] !== void 0) {
             return;
         }
         elem.setCorrect(msg);
@@ -609,8 +612,8 @@ YeeValidate.getFieldData = function (elem) {
         default: data['default'] || '',
         correct: data['correct'] || '',
         error: data['error'] || '',
-        disabled: data['disabled'],
-        output: data['output'],
+        disabled: data['disabled'] || '',
+        output: data['output'] || '',
         errType: null,
         pass: true
     };
@@ -631,13 +634,13 @@ $.fn.extend({
             }
             let config = YeeValidate.config;
             let ckBoxs = YeeValidate.findRcBox(elem) || elem;
-            ckBoxs.removeClass(config.input_valid + ' ' + config.input_default).addClass(config.input_error);
+            ckBoxs.removeClass(config.input_correct + ' ' + config.input_default).addClass(config.input_error);
             if (mode == 1 || mode == 2) {
                 return;
             }
             if (msg) {
                 let label = YeeValidate.getOutputLabel(elem);
-                label.removeClass(config.field_valid + ' ' + config.field_default).addClass(config.field_error);
+                label.removeClass(config.field_correct + ' ' + config.field_default).addClass(config.field_error);
                 label.show();
                 label.html(msg);
             }
@@ -651,9 +654,9 @@ $.fn.extend({
             }
             let config = YeeValidate.config;
             let ckBoxs = YeeValidate.findRcBox(elem) || elem;
-            ckBoxs.removeClass(config.input_error + ' ' + config.input_valid).addClass(config.input_default);
+            ckBoxs.removeClass(config.input_error + ' ' + config.input_correct).addClass(config.input_default);
             let label = YeeValidate.getOutputLabel(elem);
-            label.removeClass(config.field_error + ' ' + config.field_valid).addClass(config.field_default);
+            label.removeClass(config.field_error + ' ' + config.field_correct).addClass(config.field_default);
             if (msg) {
                 label.html(msg);
                 label.show();
@@ -671,11 +674,11 @@ $.fn.extend({
             }
             let config = YeeValidate.config;
             let ckBoxs = YeeValidate.findRcBox(elem) || elem;
-            ckBoxs.removeClass(config.input_error + ' ' + config.input_default).addClass(config.input_valid);
+            ckBoxs.removeClass(config.input_error + ' ' + config.input_default).addClass(config.input_correct);
             if (msg) {
                 let label = YeeValidate.getOutputLabel(elem);
                 label.show();
-                label.removeClass(config.field_error + ' ' + config.field_default).addClass(config.field_valid);
+                label.removeClass(config.field_error + ' ' + config.field_default).addClass(config.field_correct);
                 label.html(msg);
             }
             else {

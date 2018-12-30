@@ -12,10 +12,16 @@ import {YeeDatatable} from "./module/yee-datatable";
 import {YeePagebar} from "./module/yee-pagebar";
 import {YeeSearchForm} from "./module/yee-search-form";
 import {YeeSelectDialog} from "./module/yee-select-dialog";
-import {YeeCombine} from "./module/yee-combine";
+import {YeeContainer} from "./module/yee-container";
 import {YeeFormTab} from "./module/yee-form-tab";
 import {YeeDynamic} from "./module/yee-dynamic";
-import {YeeXheditor} from "./module/yee-xheditor";
+import {YeeXhEditor} from "./module/yee-xh-editor";
+import {YeeTemplate} from "./module/yee-template";
+import {YeeDelaySelect} from "./module/yee-delay-select";
+import {YeeChoice} from "./module/yee-choice";
+import {YeeMultipleDialog} from "./module/yee-multiple-dialog";
+import {YeeListTab} from "./module/yee-list-tab";
+import {YeeTinymce} from "./module/yee-tinymce";
 
 export class Yee {
 
@@ -137,11 +143,16 @@ export class Yee {
                 }
                 let file = module;
                 if (!/^css\!/i.test(module) && !/\.js$/i.test(module)) {
+                    //按指定路径
                     if (paths && paths[module]) {
                         file = paths[module];
-                    } else if (Yee._config.modules[module]) {
+                    }
+                    //按配置文件
+                    else if (Yee._config.modules[module]) {
                         file = Yee._config.modules[module];
-                    } else {
+                    }
+                    //默认查找
+                    else {
                         if (/^yee-/.test(module)) {
                             file = module.replace(/^yee-/, 'module/yee-') + '.js';
                         } else {
@@ -149,16 +160,26 @@ export class Yee {
                         }
                     }
                 }
-                if (file == null || file == '') {
+                if (file === null || file === '') {
                     continue;
                 }
-                if (Yee._loadedFiles[file]) {
-                    let promise = Yee._loadedFiles[file];
-                    loadMaps.push(promise);
-                    continue;
+                let addFile = function (item) {
+                    if (Yee._loadedFiles[item]) {
+                        let promise = Yee._loadedFiles[item];
+                        loadMaps.push(promise);
+                    } else {
+                        let promise = Yee._loadedFiles[item] = Yee.loader(item);
+                        loadMaps.push(promise);
+                    }
+                };
+                //如果是多个文件
+                if (Yee.isArray(file)) {
+                    for (let item of file) {
+                        addFile(item);
+                    }
+                } else {
+                    addFile(file);
                 }
-                let promise = Yee._loadedFiles[file] = Yee.loader(file);
-                loadMaps.push(promise);
             }
             if (loadMaps.length == 0) {
                 deferred.resolve();
@@ -204,13 +225,38 @@ export class Yee {
         return deferred;
     }
 
+    //顺序加载
+    public static seq(modules, paths = null) {
+        let deferred = $.Deferred();
+        if (modules === null) {
+            return deferred.resolve();
+        }
+        if (typeof modules == 'string' && modules != '') {
+            modules = [modules];
+        }
+        if (!(modules instanceof Array) || modules.length == 0) {
+            return deferred.resolve();
+        }
+        let index = 0;
+        let next = function () {
+            if (index >= modules.length) {
+                return deferred.resolve();
+            }
+            let module = modules[index];
+            Yee.use(module, paths).then(next);
+            index++;
+        }
+        next();
+        return deferred;
+    }
+
     /**
      * 解析url
      */
     public static parseUrl(url: string = '') {
         let query = url.replace(/&+$/, '');
         let path = query;
-        let prams: { [p: string]: any } = {};
+        let param: { [p: string]: any } = {};
         let hash = '';
         let hIdx = query.search(/#/);
         if (hIdx >= 0) {
@@ -227,12 +273,12 @@ export class Yee {
                     let ma = String(str).match(/^(\w+)(?:=([^&]*))?$/);
                     if (ma) {
                         let val = ma[2] || '';
-                        prams[ma[1]] = decodeURIComponent(val.replace(/\+/g, '%20'));
+                        param[ma[1]] = decodeURIComponent(val.replace(/\+/g, '%20'));
                     }
                 });
             }
         }
-        return {path: path, prams: prams, hash: hash};
+        return {path: path, param: param, hash: hash};
     }
 
     /**
@@ -241,16 +287,16 @@ export class Yee {
      */
     public static toUrl(info: { [p: string]: any } = {}) {
         let path = info.path || window.location.pathname;
-        let prams = info.prams || {};
+        let param = info.param || {};
         let qurey = [];
-        for (let key in prams) {
-            if (prams[key] == null || prams[key] == '') {
+        for (let key in param) {
+            if (param[key] == null || param[key] == '') {
                 qurey.push(key + '=');
                 continue;
             }
-            let values = (prams[key] + '').split(' ');
+            let values = (param[key] + '').split(' ');
             if (values.length == 1) {
-                qurey.push(key + '=' + encodeURIComponent(prams[key]));
+                qurey.push(key + '=' + encodeURIComponent(param[key]));
                 continue;
             }
             for (let i = 0; i < values.length; i++) {
@@ -598,11 +644,11 @@ export class Yee {
         return layer.closeAll(type);
     }
 
-    public static dialog(url: string, title: string = '网页对话框', setting: { [p: string]: any } = {}, callWindow = window) {
+    public static dialog(url: string, title: string = '网页对话框', setting: { [p: string]: any } = {}, callWindow = window, qel = null) {
         if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].dialog(url, title, setting, window);
+            return window.top['Yee'].dialog(url, title, setting, window, qel);
         }
-        return YeeDialog.open(url, title, setting, callWindow);
+        return YeeDialog.open(url, title, setting, callWindow, qel);
     }
 
     public static emit(event: string, ...data) {
@@ -645,6 +691,25 @@ export class Yee {
         return val != null && typeof val === 'object' && Array.isArray(val) === false;
     }
 
+    public static randomString(len: number = 32) {
+        let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+        let maxPos = chars.length;
+        let run = '';
+        for (let i = 0; i < len; i++) {
+            run += chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return run;
+    }
+
+    public static getTemplate(tplId) {
+        for (let temp in YeeTemplate.instance) {
+            if (temp == tplId) {
+                return YeeTemplate.instance[temp];
+            }
+        }
+        return null;
+    }
+
 }
 
 
@@ -667,7 +732,7 @@ $.fn.extend({
 });
 //*********************************************************************************
 //注册插件
-Yee.extend('ajax', 'a,form,:input', YeeAjax);
+Yee.extend('template', '*', YeeTemplate);
 Yee.extend('confirm', ':input,button,form,a', YeeConfirm);
 Yee.extend('validate', 'form', YeeValidate);
 Yee.extend('remote', ':input', YeeRemote);
@@ -678,13 +743,20 @@ Yee.extend('picker', ':input', YeePicker);
 Yee.extend('dialog', 'a,button,input', YeeDialog);
 Yee.extend('linkage', ':input', YeeLinkage);
 Yee.extend('select-dialog', ':input,a', YeeSelectDialog);
+Yee.extend('multiple-dialog', ':input', YeeMultipleDialog);
 Yee.extend('pagebar', 'div', YeePagebar);
 Yee.extend('search-form', 'form', YeeSearchForm);
 Yee.extend('datatable', 'table', YeeDatatable);
-Yee.extend('combine', 'div', YeeCombine);
+Yee.extend('container', 'div', YeeContainer);
 Yee.extend('form-tab', 'ul', YeeFormTab);
+Yee.extend('list-tab', 'ul', YeeListTab);
 Yee.extend('dynamic', ':input', YeeDynamic);
-Yee.extend('xheditor', ':input', YeeXheditor);
+Yee.extend('xh-editor', ':input', YeeXhEditor);
+Yee.extend('tinymce', ':input', YeeTinymce);
+
+Yee.extend('choice', 'a', YeeChoice);
+Yee.extend('ajax', 'a,form,:input', YeeAjax);
+Yee.extend('delay-select', 'select', YeeDelaySelect);
 Yee.init();
 
 window['Yee'] = Yee;

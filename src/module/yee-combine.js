@@ -1,6 +1,7 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+Object.defineProperty(exports, "__esModule", {value: true});
 const yee_1 = require("../yee");
+
 class YeeCombine {
     constructor(elem, setting = {}) {
         this.index = 0;
@@ -22,8 +23,7 @@ class YeeCombine {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
             that.init();
-        }
-        else {
+        } else {
             yee_1.Yee.use('base64').then(function () {
                 // @ts-ignore
                 that.template = Base64.decode(source);
@@ -31,6 +31,7 @@ class YeeCombine {
             });
         }
     }
+
     init() {
         let that = this;
         let qel = this.qel;
@@ -98,6 +99,7 @@ class YeeCombine {
         }
         this.updateIndex();
     }
+
     addItem() {
         if (this.template == null) {
             return;
@@ -120,31 +122,30 @@ class YeeCombine {
         yee_1.Yee.update(item);
         return item;
     }
+
     updateIndex() {
         let setting = this.setting;
         let len = this.wrap.find('.combine-item').length;
         this.wrap.find('.combine-item').each(function (idx, el) {
             if (idx == 0) {
                 $(el).find('a.combine-upsort').hide();
-            }
-            else {
+            } else {
                 $(el).find('a.combine-upsort').show();
             }
             if (idx == len - 1) {
                 $(el).find('a.combine-dnsort').hide();
-            }
-            else {
+            } else {
                 $(el).find('a.combine-dnsort').show();
             }
             $(el).find('.combine-index').text(idx + 1);
         });
         if (setting.maxSize > 0 && len >= setting.maxSize) {
             $('.combine-add').hide();
-        }
-        else {
+        } else {
             $('.combine-add').show();
         }
     }
 }
+
 exports.YeeCombine = YeeCombine;
 //# sourceMappingURL=yee-combine.js.map

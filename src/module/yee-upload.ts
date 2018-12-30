@@ -7,6 +7,10 @@ export class YeeUpload {
         return {path: path, extension: extension};
     }
 
+    public static getExtension(url: string) {
+        return url.lastIndexOf('.') === -1 ? '' : url.substr(url.lastIndexOf('.') + 1, url.length).toLowerCase();
+    }
+
     public static createImage(url: string, width: number, height: number) {
         let def = $.Deferred();
         let imgTemp = new Image();
@@ -27,10 +31,12 @@ export class YeeUpload {
             img.height(Math.round(h));
             img.width(Math.round(w));
             img.attr('src', url);
-            let table = $('<table  border="0" cellspacing="0" cellpadding="0"><tr><tdList style="padding:0px; vertical-align:middle; text-align:center; overflow: hidden; line-height:0px;"></tdList></tr></table>');
+            // let table = $('<table  border="0" cellspacing="0" cellpadding="0"><tr><td style="padding:0px; vertical-align:middle; text-align:center; overflow: hidden; line-height:0px;"></td></tr></table>');
+            let table = $('<div style="display: table-cell; text-align: center; vertical-align: middle; overflow: hidden; line-height: 0px;"></div>');
             table.width(width);
             table.height(height);
-            table.find('tdList').append(img);
+            table.append(img);
+            //table.find('td').append(img);
             def.resolve(table);
         };
         imgTemp.src = url;
@@ -77,8 +83,13 @@ export class YeeUpload {
         else if (type == 'imgGroup') {
             that.upImgGroup();
         }
+        //多文件上传
+        else if (type == 'fileGroup') {
+            that.upFileGroup();
+        }
     }
 
+    //上传文档
     public upFile() {
         let field = this.field;
         let qel = this.qel;
@@ -126,6 +137,7 @@ export class YeeUpload {
         }
     }
 
+    //上传图片
     public upImage() {
         let setting = this.setting;
         let field = this.field;
@@ -178,6 +190,7 @@ export class YeeUpload {
         });
     }
 
+    //上传图片组
     public upImgGroup() {
         let setting = this.setting;
         let field = this.field;
@@ -262,6 +275,97 @@ export class YeeUpload {
                     }
                 } else if (ret.data.url) {
                     addImg(ret.data.url);
+                }
+            }
+            if (ret.msg) {
+                Yee.msg(ret.msg);
+            }
+        });
+    }
+
+    //上传文件组
+    public upFileGroup() {
+        let setting = this.setting;
+        let field = this.field;
+        let qel = this.qel;
+        let size = setting.size || 0;
+        qel.hide();
+        let shower = $('<div class="yee-file-wrap"></div>').insertAfter(qel);
+        let button = $('<a href="javascript:;" class="yee-btn file-btn">选择文件</a>').appendTo(shower);
+        //跟新值
+        let update = function () {
+            let imgItems = [];
+            shower.find('div.file-item').each(function (index, element) {
+                let _this = $(element);
+                let dat = _this.data('value');//值
+                imgItems.push(dat);
+            });
+            if (imgItems.length === 0) {
+                qel.val('');
+            } else {
+                let strValue = JSON.stringify(imgItems);
+                qel.val(strValue);
+            }
+
+            if (size > 0) {
+                if (imgItems.length >= size) {
+                    button.hide();
+                } else {
+                    button.show();
+                }
+            }
+        };
+        //添加图片
+        let addFile = function (url, name = '') {
+            let item = $('<div class="file-item"></div>').data('value', {url: url, name: name});
+            item.text(name);
+            let ext = YeeUpload.getExtension(url);
+            item.addClass(ext);
+            let delBtn = $('<a href="javascript:;"></a>').addClass('file-del').appendTo(item);
+            delBtn.on('click', function () {
+                $(this).parent('.file-item').remove();
+                update();
+            });
+            item.insertBefore(button);
+            update();
+        }
+        let strValue = qel.val() || '[]';
+        let arrValue = [];
+        if (strValue !== '' && strValue !== 'null') {
+            try {
+                arrValue = JSON.parse(strValue);
+            } catch (e) {
+                arrValue = [];
+            }
+        }
+        for (let item of arrValue) {
+            addFile(item.url, item.name);
+        }
+        //按钮点击
+        button.on('click', function () {
+            field.trigger('click');
+            if (typeof (qel.setDefault) == 'function') {
+                qel.setDefault();
+            }
+            return false;
+        });
+        //监听上传完成
+        qel.on('uploadComplete', function (ev, ret) {
+            if (!ret.status) {
+                if (ret.msg !== '') {
+                    Yee.alert(ret.msg);
+                }
+                return;
+            }
+            if (ret.data) {
+                if (Yee.isArray(ret.data)) {
+                    for (let item of ret.data) {
+                        if (item.url) {
+                            addFile(item.url, item.orgName);
+                        }
+                    }
+                } else if (ret.data.url) {
+                    addFile(ret.data.url, ret.data.orgName);
                 }
             }
             if (ret.msg) {

@@ -6,6 +6,8 @@ declare type DialogHandle = {
     close: Function,
     assign: any,
     callWindow: any,
-    elem: any
+    elem: any,
+    index: number,
+    layer: any
 };
 declare type Point = { left: number, top: number };

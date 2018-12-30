@@ -46,8 +46,8 @@ export class YeeRemote {
                             data[key] = val;
                         } else {
                             let urlInfo = Yee.parseUrl(window.location.search);
-                            if (urlInfo.prams[key] !== void 0) {
-                                data[key] = urlInfo.prams[key];
+                            if (urlInfo.param[key] !== void 0) {
+                                data[key] = urlInfo.param[key];
                             }
                         }
                     }
@@ -58,15 +58,15 @@ export class YeeRemote {
                             elem.data('remoteResult', true);
                             elem.data('remoteMessage', ret.msg);
                             // @ts-ignore
-                            if (typeof(elem.setCorrect) == 'function') {
+                            if (typeof (elem.setCorrect) == 'function') {
                                 // @ts-ignore
-                                elem.setCorrect(ret.message);
+                                elem.setCorrect(ret.msg);
                             }
                         } else {
                             elem.data('remoteResult', false);
                             elem.data('remoteMessage', ret.msg);
                             // @ts-ignore
-                            if (typeof(elem.setError) == 'function') {
+                            if (typeof (elem.setError) == 'function') {
                                 // @ts-ignore
                                 elem.setError(ret.msg);
                             }

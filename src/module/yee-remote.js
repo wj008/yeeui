@@ -48,8 +48,8 @@ class YeeRemote {
                         }
                         else {
                             let urlInfo = yee_1.Yee.parseUrl(window.location.search);
-                            if (urlInfo.prams[key] !== void 0) {
-                                data[key] = urlInfo.prams[key];
+                            if (urlInfo.param[key] !== void 0) {
+                                data[key] = urlInfo.param[key];
                             }
                         }
                     }
@@ -62,7 +62,7 @@ class YeeRemote {
                             // @ts-ignore
                             if (typeof (elem.setCorrect) == 'function') {
                                 // @ts-ignore
-                                elem.setCorrect(ret.message);
+                                elem.setCorrect(ret.msg);
                             }
                         }
                         else {

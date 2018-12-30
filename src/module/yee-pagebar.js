@@ -1,12 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const yee_1 = require("../yee");
+const yee_template_1 = require("./yee-template");
 class YeePagebar {
     constructor(elem, setting) {
         this.qel = null;
         this.setting = null;
-        this.pageBar = null;
+        this.templates = [];
+        this.bindElem = null;
         let qel = this.qel = $(elem);
+        let that = this;
+        qel.find('[yee-template]').each(function (_, it) {
+            that.templates.push(new yee_template_1.YeeTemplate(it));
+        });
         setting = this.setting = $.extend({
             pageSize: 0,
             hidden: 0,
@@ -16,33 +22,32 @@ class YeePagebar {
             lastPage: 1,
             info: null
         }, setting);
-        let that = this;
-        let bindElem = setting.bind || null;
-        let pageBar = this.pageBar = qel.find('[v-name="bar"]');
-        if (pageBar.length > 0) {
-            pageBar.on('click', 'a', function () {
-                let _this = $(this);
-                let url = _this.data('url') || '';
-                if (_this.is('.gopage')) {
-                    let input = _this.prev("input.inp");
-                    let page = String(input.val() || '1');
-                    page = /^\d+$/.test(page) ? page : '1';
-                    url = url.replace('--gopage--', page);
-                }
-                if (bindElem && $(bindElem).length > 0) {
-                    // @ts-ignore
-                    $(bindElem).emit('load', url, true);
-                }
+        //按钮点击事件
+        qel.on('click', 'a.page-btn', function () {
+            let _this = $(this);
+            let url = _this.data('url') || '';
+            if (_this.is('.gopage')) {
+                let input = _this.prev("input.inp");
+                let page = String(input.val() || '1');
+                page = /^\d+$/.test(page) ? page : '1';
+                url = url.replace('--gopage--', page);
+            }
+            if (that.bindElem && that.bindElem.length > 0) {
                 // @ts-ignore
-                qel.emit('barClick');
-            });
-        }
-        qel.on('source', function (ev, source) {
-            that.render(source);
+                that.bindElem.emit('load', url, true);
+            }
+            // @ts-ignore
+            qel.emit('page');
         });
+        let bindElem = setting.bind || null;
         if (bindElem) {
-            $(bindElem).on('source', function (ev, source) {
-                that.render(source);
+            this.bindElem = $(bindElem);
+            this.bindElem.on('render', function (ev, source, url) {
+                if (source.pageInfo) {
+                    let pageInfo = source.pageInfo;
+                    pageInfo.query = url;
+                    that.render(pageInfo);
+                }
             });
         }
         if (setting.info) {
@@ -68,17 +73,17 @@ class YeePagebar {
         let temp = start + 9;
         let end = (page + 5 > maxPage) ? maxPage : (temp > maxPage ? maxPage : temp);
         if (size) {
-            query.prams.pageSize = size;
+            query.param.pageSize = size;
         }
         let prev = page - 1 <= 0 ? 1 : page - 1;
         let next = page + 1 >= maxPage ? maxPage : page + 1;
         let html = '';
-        query.prams[pkey] = 1;
+        query.param[pkey] = 1;
         if (option.firstPage == 1 || option.firstPage == 'true') {
-            html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="first">' + firstText + '</a>';
+            html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="page-btn first">' + firstText + '</a>';
         }
-        query.prams[pkey] = prev;
-        html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="prev">' + prevText + '</a>';
+        query.param[pkey] = prev;
+        html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="page-btn prev">' + prevText + '</a>';
         if (option.numPage == 1 || option.numPage == 'true') {
             for (let i = start; i <= end; i++) {
                 let p_page = i;
@@ -86,41 +91,33 @@ class YeePagebar {
                     html += '<b>' + p_page + '</b>';
                 }
                 else {
-                    query.prams[pkey] = p_page;
-                    html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '">' + p_page + '</a>';
+                    query.param[pkey] = p_page;
+                    html += '<a href="javascript:;" class="page-btn" data-url="' + yee_1.Yee.toUrl(query) + '">' + p_page + '</a>';
                 }
             }
         }
-        query.prams[pkey] = next;
-        html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="next">' + nextText + '</a>';
+        query.param[pkey] = next;
+        html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="page-btn next">' + nextText + '</a>';
         if (option.lastPage == 1 || option.lastPage == 'true') {
-            query.prams[pkey] = maxPage;
-            html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="last">' + lastText + '</a>';
+            query.param[pkey] = maxPage;
+            html += '<a href="javascript:;" data-url="' + yee_1.Yee.toUrl(query) + '" class="page-btn last">' + lastText + '</a>';
         }
         if (option.goPage == 1 || option.goPage == 'true') {
             let spage = page > maxPage ? maxPage : page;
             spage = spage <= 0 ? 1 : spage;
-            query.prams[pkey] = '--gopage--';
-            html += '<input type="text" class="inp" value="' + spage + '"/><a class="gopage" data-url="' + yee_1.Yee.toUrl(query) + '" href="javascript:;">GO</a>';
+            query.param[pkey] = '--gopage--';
+            html += '<input type="text" class="page-inp" value="' + spage + '"/><a class="page-btn gopage" data-url="' + yee_1.Yee.toUrl(query) + '" href="javascript:;">GO</a>';
         }
         return html;
     }
-    render(source) {
+    render(pageInfo) {
         let qel = this.qel;
-        let setting = this.setting;
-        let pageBar = this.pageBar;
-        let pageInfo = source.pageInfo || {};
-        pageInfo.query = source.query;
-        if (pageBar.length > 0) {
-            pageBar.html(YeePagebar.getCode(pageInfo, setting));
+        pageInfo.barCode = YeePagebar.getCode(pageInfo, this.setting);
+        for (let template of this.templates) {
+            template.render(pageInfo);
         }
-        qel.find('[v-name="count"]').text(pageInfo.recordsCount);
-        qel.find('[v-name="pageCount"]').text(pageInfo.pageCount);
-        qel.find('[v-name="page"]').text(pageInfo.page);
-        qel.find('[v-name="pageSize"]').text(pageInfo.pageSize);
-        qel.find('[v-name="maxPage"]').text(pageInfo.pageCount);
         yee_1.Yee.update(qel.get(0));
-        qel.trigger('change');
+        qel.emit('render');
     }
 }
 exports.YeePagebar = YeePagebar;

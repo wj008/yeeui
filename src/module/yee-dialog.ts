@@ -38,7 +38,7 @@ export class YeeDialog {
                     if (qel.is(':checkbox')) {
                         val = qel.is(':checked') ? qel.val() : '';
                     }
-                    args.prams[name] = val;
+                    args.param[name] = val;
                 });
                 url = Yee.toUrl(args);
             }
@@ -73,9 +73,7 @@ export class YeeDialog {
             },
             success: function (layero, index) {
                 dialogWindow = null;
-                //layero.find('.layui-layer-content').css('height', 'calc(100% - 43px)');
                 iframe = layero.find('iframe');
-                //iframe.css('height', '100%');
                 if (iframe.length > 0) {
                     let winName = iframe[0].name;
                     dialogWindow = window[winName];
@@ -115,9 +113,11 @@ export class YeeDialog {
                         },
                         assign: setting.assign || null,
                         callWindow: callWindow,
-                        elem: elem
+                        elem: elem,
+                        index: index,
+                        layer: layer
                     };
-                    dialogWindow._dialogHandle = handle;
+                    dialogWindow.dialogHandle = handle;
                 }
             }
         });
@@ -130,8 +130,8 @@ export class YeeDialog {
     public static dialogHandle() {
         let deferred = $.Deferred();
         let getHandle = function () {
-            if (window['_dialogHandle']) {
-                return deferred.resolve(window['_dialogHandle']);
+            if (window['dialogHandle']) {
+                return deferred.resolve(window['dialogHandle']);
             }
             setTimeout(getHandle, 1);
         }
@@ -165,9 +165,6 @@ export class YeeDialog {
             // @ts-ignore
             qel.on('openDialog', func);
         }
-        qel.get(0).addEventListener('click', function () {
-            alert(1);
-        });
         qel.on('click', function (ev) {
             let qel = $(this);
             if (qel.is('.disabled') || qel.is(':disabled')) {
@@ -181,7 +178,7 @@ export class YeeDialog {
             setting = $.extend({height: 720, width: 1060}, setting);
             let url = setting.url || qel.attr('href');
             let title = qel.attr('title') || '网页对话框';
-            YeeDialog.open(url, title, setting, window, qel);
+            Yee.dialog(url, title, setting, window, qel);
             ev.preventDefault();
             return false;
         });
