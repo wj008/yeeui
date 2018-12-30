@@ -4,159 +4,252 @@
   src: url("font/YeeFont.eot?#iefix") format("embedded-opentype"), /* IE6-IE8 */ url("font/YeeFont.woff") format("woff"), /* chrome firefox */ url("font/YeeFont.ttf") format("truetype"), /* chrome firefox opera safari, Android, iOS 4.2+ */ url("font/YeeFont.svg#uxfonteditor") format("svg"); /* iOS 4.1- */
 }
 
+
+.yee-form-header {
+  height: 50px;
+  line-height: 50px;
+  border-bottom: 1px solid #e4eaec;
+  font-size: 18px;
+  padding: 0 20px;
+
+  .yee-title {
+    display: inline-block;
+
+    &.none {
+      display: none;
+    }
+  }
+}
+
 //面板
 .yee-panel {
   margin-bottom: 15px;
-  border-radius: 5px;
+  border-radius: 3px;
   background: #fff;
   padding: 15px 20px;
-  color: #606060;
   box-shadow: 0 0 2px gray(0, 0.05);
-}
 
-.yee-panel-title {
-  border-bottom: 1px solid #e4eaec;
-  line-height: 40px;
-  position: relative;
+  .panel-caption {
+    border-bottom: 1px solid #e4eaec;
+    line-height: 40px;
+    position: relative;
 
-  h3 {
-    font-size: 16px;
-    color: #555
+    h3 {
+      font-size: 16px;
+      color: #555
+    }
+
+    i {
+      color: #32a3ff;
+      float: left;
+      margin: 15px 10px 0 3px
+    }
   }
 
-  i {
-    color: #31b4e1;
-    float: left;
-    margin: 15px 10px 0 3px
+  .panel-content {
+    padding-top: 15px
   }
 }
 
-.yee-panel-content {
-  padding-top: 15px
-}
-
-.yee-section {
+//行
+.yee-row {
   line-height: 30px;
   background: #FFF;
-  color: #606060;
   clear: both;
   display: table;
   border: 0;
   width: 100%;
   margin: 0;
   padding: 0;
-}
 
-.yee-section-caption {
-  text-align: right;
-  vertical-align: top;
-  width: 250px;
-}
+  &.none {
+    display: none;
+  }
 
-.yee-section-row, .yee-section-label {
-  display: table-cell;
-  font-weight: 400;
-  text-align: left;
-  padding: 3px 0;
-  vertical-align: middle;
-}
+  .row-caption {
+    text-align: right;
+    vertical-align: top;
+    width: 200px;
+  }
 
-.yee-section-label em {
-  font-style: normal;
-  margin-left: 5px;
+  .row-cell, .row-label {
+    display: table-cell;
+    font-weight: 400;
+    text-align: left;
+    padding: 3px 0;
+    vertical-align: middle;
 
-  &:before {
-    content: '*';
-    color: #E84C3D;
-    margin-right: 5px
+
+    &.none {
+      display: none;
+    }
+  }
+
+  .row-label {
+    width: 200px;
+    text-align: right;
+    vertical-align: top;
+    em {
+      font-style: normal;
+      margin-left: 5px;
+
+      &:before {
+        content: '*';
+        color: #E84C3D;
+        margin-right: 5px
+      }
+    }
+  }
+
+  .row-inline {
+    display: inline-block;
+    padding: 0px;
+    margin-left: 10px;
+
+    &.none {
+      display: none;
+    }
+
+    :first-child {
+      margin-left: 0px;
+    }
   }
 }
 
-.yee-section-inline {
+.yee-container-title {
+  display: block;
+  margin-left: 0px;
+  background: #f8f8f8;
+  line-height: 28px;
+
+  &.none {
+    display: none;
+  }
+
+  .inline-label {
+    display: inline-block;
+    font-weight: 400;
+    text-align: left;
+    padding: 0;
+    vertical-align: middle;
+    width: auto;
+
+    &.none {
+      display: none;
+    }
+  }
+}
+
+.yee-container-body {
+  display: block;
+  border: 1px #eee dotted;
+  padding: 5px 8px;
+
+  .yee-row .row-label {
+    width: 180px;
+  }
+}
+
+.yee-row-inline {
   display: inline-block;
-  padding: 0px;
-  margin-left: 10px;
+  margin: 0;
+  padding: 0;
 
-  :first-child {
-    margin-left: 0px;
+  &.none {
+    display: none;
+  }
+
+  .inline-cell, .inline-label {
+    display: inline-block;
+    font-weight: 400;
+    text-align: left;
+    padding: 0;
+    vertical-align: middle;
+    width: auto;
+
+    &.none {
+      display: none;
+    }
+  }
+
+  .inline-label {
+    em {
+      font-style: normal;
+      margin-left: 5px;
+
+      &:before {
+        content: '*';
+        color: #E84C3D;
+        margin-right: 5px
+      }
+    }
   }
 }
 
+.yee-line {
+  background: #f2f2f2;
+  line-height: 30px;
+  padding: 0 20px;
+  border-left: 3px #1E9FFF solid;
+}
+
+.yee-line label.line-label {
+  color: #333;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 30px;
+
+  &.none {
+    display: none;
+  }
+}
+
+.yee-line .line-tips {
+  line-height: 16px;
+  color: #909090;
+  display: inline-block;
+  padding: 3px 15px 0 15px;
+
+  &.none {
+    display: none;
+  }
+}
+
+//提交区域
 .yee-submit {
   padding: 15px 0 30px 0;
   line-height: 30px;
   clear: both;
   display: table;
+
+  &.none {
+    display: none;
+  }
+
+  .submit-cell, .submit-label {
+    display: table-cell;
+    font-weight: 400;
+    text-align: left;
+    padding: 3px 0;
+    vertical-align: middle;
+
+    &.none {
+      display: none;
+    }
+  }
+
+  .submit-label {
+    width: 200px;
+  }
+
+  .form-btn {
+    margin-right: 10px;
+  }
 }
 
-.yee-submit-row, .yee-submit-label {
-  display: table-cell;
-  font-weight: 400;
-  text-align: left;
-  padding: 3px;
-  vertical-align: middle;
-}
-
-a.yee-btn, input.yee-btn {
-  color: #555;
-  border: 1px solid #e1e1e1;
-  text-decoration: none;
-  height: 28px;
-  line-height: 28px;
-  font-size: 14px;
-  padding: 0 20px;
-  border-radius: 3px;
-  cursor: pointer;
-  margin-right: 15px;
-  opacity: 0.9;
-  display: inline-block;
-  vertical-align: middle;
-  background: #f7f7f7;
- // text-shadow: 1px 1px white, -1px -1px #eee;
-
-  &:hover {
-    opacity: 1;
-  }
-
-  &.small {
-    height: 24px;
-    line-height: 24px;
-    font-size: 12px;
-    padding: 0 10px;
-  }
-
-  &.submit {
-    height: 32px;
-    line-height: 32px;
-    border: 1px solid #fc5151;
-    color: #fff;
-    background: #fc5151
-  }
-
-  &.back, &.reset {
-    height: 32px;
-    line-height: 32px;
-    border: 1px solid #fc5151;
-    background-color: #fff;
-    color: #fc5151
-  }
-
-  &.blue {
-    border: 1px solid #32a3ff;
-    color: #fff;
-    background: #32a3ff;
-  }
-
-  &.normal {
-    border: 1px solid #a0a0a0;
-    background-color: #f1f1f1;
-    color: #909090;
-  }
-
-}
-
-.yee-inp {
-  border: 1px solid #e1e1e1;
+//输入框
+.form-inp {
+  border: 0.5px solid #e1e1e1;
   border-radius: 3px;
   line-height: 18px;
   padding: 5px 10px;
@@ -174,7 +267,7 @@ a.yee-btn, input.yee-btn {
   &[type="checkbox"] + span {
     padding: 0 5px 0 25px;
     margin-left: -22px;
-    border: 1px transparent dashed;
+    border: 0.5px transparent dashed;
     box-sizing: border-box;
   }
 
@@ -186,7 +279,7 @@ a.yee-btn, input.yee-btn {
     width: 14px;
     display: inline-block;
     background: #FFF;
-    border: 1px #e1e1e1 solid;
+    border: 0.5px #e1e1e1 solid;
     border-radius: 1px;
     color: #999;
     font-size: 18px;
@@ -194,6 +287,10 @@ a.yee-btn, input.yee-btn {
     margin-top: -8px;
     text-align: center;
     vertical-align: middle;
+
+    &.none {
+      display: none;
+    }
   }
 
   &[type="checkbox"]:hover:after {
@@ -224,7 +321,7 @@ a.yee-btn, input.yee-btn {
   &[type="radio"] + span {
     padding: 0 5px 0 25px;
     margin-left: -22px;
-    border: 1px transparent dashed;
+    border: 0.5px transparent dashed;
     box-sizing: border-box;
   }
 
@@ -236,7 +333,7 @@ a.yee-btn, input.yee-btn {
     width: 16px;
     display: inline-block;
     background: #FFF;
-    border: 1px #dbdbdb solid;
+    border: 0.5px #dbdbdb solid;
     border-radius: 9px;
     color: #999;
     font-size: 14px;
@@ -244,10 +341,14 @@ a.yee-btn, input.yee-btn {
     margin-top: -8px;
     text-align: center;
     vertical-align: middle;
+
+    &.none {
+      display: none;
+    }
   }
 
   &[type="radio"]:hover:after {
-    border: 1px #62b3ff solid;
+    border: 0.5px #62b3ff solid;
   }
 
   &[type="radio"]:checked:after {
@@ -261,18 +362,87 @@ a.yee-btn, input.yee-btn {
   }
 
   &[type="radio"]:disabled:hover:after {
-    border: 1px #dbdbdb solid;
+    border: 0.5px #dbdbdb solid;
   }
 
   &:focus {
-    border: 1px solid #62b3ff;
+    border: 0.5px solid #62b3ff;
   }
 
   &.small {
     line-height: 14px;
     padding: 3px 5px
   }
+
+  &.snumber, &.sinteger {
+    width: 60px
+  }
+
+  &.number, &.integer {
+    width: 100px
+  }
+
+  &.text {
+    width: 240px
+  }
+
+  &.textarea {
+    width: 420px;
+    outline: none;
+    vertical-align: top;
+  }
+
+  &.xh-editor {
+    height: 280px
+  }
+
+  &.datetime {
+    width: 160px
+  }
+
+  &.date {
+    width: 140px
+  }
+
+  &.linkage {
+    margin-right: 5px;
+  }
+
+  &.date, &.datetime {
+    background-image: url(img/yee.date.png);
+    background-position: right+5px center;
+    background-repeat: no-repeat
+  }
+
+  &.upload {
+    width: 260px;
+    vertical-align: middle;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    margin-left: -13px
+  }
+
 }
 
+select.form-inp {
+  background: #FFF;
+  padding: 0px 10px;
+  line-height: 28px;
+  height: 30px;
 
+  option {
+    background: #FFF;
+  }
+}
 
+.container-item {
+  padding: 2px 0;
+}
+
+.row-cell .yee-row-inline {
+  margin-left: 10px;
+}
+
+.xheLayout {
+  line-height: 22px;
+}
