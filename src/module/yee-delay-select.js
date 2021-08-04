@@ -1,11 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeDelaySelect {
-    constructor(elem, setting) {
+    constructor(elem) {
         this.qel = null;
-        this.setting = null;
-        this.setting = setting;
         let qel = this.qel = $(elem);
         let that = this;
         qel.on('change', function () {
@@ -32,54 +27,54 @@ class YeeDelaySelect {
         qel.on('update', function (ev, option, value) {
             that.update(option, value);
         });
-        if (setting.source) {
-            if (typeof (setting.source) == 'string') {
-                let method = setting.method || 'get';
-                method = method.toLocaleLowerCase();
-                $[method](setting.source, function (ret) {
-                    if (ret.status === true && ret.data) {
-                        that.update(ret.data);
-                    }
-                    else {
-                        yee_1.Yee.alert('无法加载远程数据！');
-                    }
-                }, 'json');
+        let source = qel.data('source') || '';
+        let method = qel.data('method') || 'get';
+        if (typeof (source) == 'string') {
+            if (source === '') {
+                that.update([]);
+                return;
             }
-            else if (yee_1.Yee.isArray(setting.source)) {
-                that.update(setting.source);
-            }
+            let info = Yee.parseUrl(source);
+            Yee.fetch(info.path, info.param, method).then(function (ret) {
+                if (ret.status === true && ret.data) {
+                    that.update(ret.data);
+                } else {
+                    Yee.alert('无法加载远程数据！');
+                }
+            }).catch((e) => console.log(e));
+        } else if (Yee.isArray(source)) {
+            that.update(source);
         }
     }
+
     initItem(items, value = null) {
         let qel = this.qel;
         let element = qel.get(0);
         value = value === null ? qel.data('value') || '' : value;
-        if (items !== null && yee_1.Yee.isArray(items)) {
+        if (items !== null && Yee.isArray(items)) {
             let has = false;
             for (let item of items) {
                 let opt = {};
                 if (typeof (item) === 'number' || typeof (item) === 'string') {
                     opt.value = item;
                     opt.text = item;
-                }
-                else {
-                    if (typeof (item.value) !== 'undefined') {
+                } else {
+                    if (item['value'] !== void 0) {
                         opt.value = item.value;
-                    }
-                    else if (typeof (item[0]) !== 'undefined') {
+                    } else if (item[0] !== void 0) {
                         opt.value = item[0];
-                    }
-                    else {
+                    } else {
                         continue;
                     }
-                    if (typeof (item.text) !== 'undefined') {
+                    if (item['text'] !== void 0) {
                         opt.text = item.text;
-                    }
-                    else if (typeof (item[1]) !== 'undefined') {
+                    } else if (item[1] !== void 0) {
                         opt.text = item[1];
-                    }
-                    else {
+                    } else {
                         opt.text = opt.value;
+                    }
+                    if (item['data_url'] !== void 0) {
+                        opt.data_url = item.text;
                     }
                 }
                 if (element.length == 1 && (opt.value === null || opt.value === '')) {
@@ -88,6 +83,9 @@ class YeeDelaySelect {
                 }
                 let option = new Option(opt.text, opt.value);
                 element.add(option);
+                if (opt.data_url !== void 0) {
+                    $(option).data('url', opt.data_url);
+                }
                 if (value == opt.value) {
                     option.selected = true;
                     has = true;
@@ -98,25 +96,42 @@ class YeeDelaySelect {
             }
         }
     }
+
     update(items, value = null) {
+        let that = this;
         let qel = this.qel;
+        let method = qel.data('method') || 'get';
+        if (typeof items == 'string') {
+            let source = items;
+            if (source === '') {
+                that.update([]);
+                return;
+            }
+            let info = Yee.parseUrl(source);
+            Yee.fetch(info.path, info.param, method).then(function (ret) {
+                if (ret.status === true && ret.data) {
+                    that.update(ret.data);
+                } else {
+                    Yee.alert('无法加载远程数据！');
+                }
+            }).catch((e) => console.log(e));
+            return;
+        }
         let element = qel.get(0);
         element.length = 0;
-        let header = this.setting.header || '';
+        let header = qel.data('header') || '';
         //添加头部
         if (header) {
             if (typeof header == 'string') {
                 element.add(new Option(header, ''));
-            }
-            else if (typeof header == 'object' && header.text) {
+            } else if (typeof header == 'object' && header.text) {
                 element.add(new Option(header.text, header.value || ''));
-            }
-            else if (yee_1.Yee.isArray(header) && header.length >= 2) {
+            } else if (Yee.isArray(header) && header.length >= 2) {
                 element.add(new Option(header[1], header[0]));
             }
         }
         this.initItem(items, value);
     }
 }
-exports.YeeDelaySelect = YeeDelaySelect;
-//# sourceMappingURL=yee-delay-select.js.map
+
+export {YeeDelaySelect}

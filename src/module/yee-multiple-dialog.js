@@ -1,41 +1,77 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeMultipleDialog {
-    constructor(elem, setting) {
-        let qel = $(elem);
-        let textBox = $('<div></div>').insertAfter(qel);
-        let textData = qel.data('text') || {};
+    constructor(elem) {
+        let qel = $(elem).hide();
+        let frag = document.createDocumentFragment();
+        let textBox = $('<div></div>').appendTo(frag);
+        let mode = parseInt(qel.data('mode') || 1);
+        let itemsData = qel.data('items') || null;
+        if (mode != 2 && itemsData === null) {
+            let value = qel.val() || '';
+            value = value.toString();
+            if (/^\[/.test(value) && /^\]$/.test(value)) {
+                try {
+                    let temp = JSON.parse(value);
+                    let temp2 = [];
+                    if (Yee.isArray(temp)) {
+                        for (let item of temp) {
+                            if (typeof item == 'object') {
+                                temp2.push(item);
+                            } else {
+                                item = item + '';
+                                temp2.push({value: item, text: item});
+                            }
+                        }
+                    }
+                    itemsData = temp2;
+                } catch (e) {
+                    itemsData = null;
+                }
+            }
+        }
+        if (itemsData == null) {
+            itemsData = [];
+        }
         textBox.attr('class', qel.attr('class'));
         textBox.attr('style', qel.attr('style'));
         textBox.attr('placeholder', qel.attr('placeholder'));
-        qel.hide();
-        let span = $('<span></span>').insertAfter(textBox);
+        if (qel.is(':disabled')) {
+            textBox.css({'background-color': '#EBEBE4'});
+        }
+        textBox.show();
+        let span = $('<span></span>').appendTo(frag);
         let button = $('<a class="form-btn" href="javascript:;" yee-module="dialog" style="margin-left: 5px">选择</a>').appendTo(span);
-        if (setting.btnText) {
-            button.text(setting.btnText);
+        let btnText = qel.data('btn-text');
+        if (btnText) {
+            button.text(btnText);
+        }
+        if (qel.is(':disabled')) {
+            button.addClass('disabled');
         }
         button.data('carry', '#' + qel.attr('id'));
-        if (setting.width) {
-            button.data('width', setting.width);
+        let width = qel.data('width') || 0;
+        if (width) {
+            button.data('width', width);
         }
-        if (setting.height) {
-            button.data('height', setting.height);
+        let height = qel.data('height') || 0;
+        if (height) {
+            button.data('height', height);
         }
         textBox.on('click', function () {
+            if (qel.is(':disabled')) {
+                return false;
+            }
             button.trigger('click');
         });
-        button.data('url', setting.href || setting.url || '');
-        button.data('assign', { value: qel.val(), text: textData });
+        let url = qel.data('url') || '';
+        button.data('url', url);
+        button.data('assign', itemsData);
         button.on('mousedown', function () {
-            // @ts-ignore
             if (typeof (qel.setDefault) == 'function') {
-                // @ts-ignore
                 qel.setDefault();
             }
         });
-        let updateText = function (data) {
-            if (data && yee_1.Yee.isArray(data)) {
+        let updateItems = function (data) {
+            if (data && Yee.isArray(data)) {
                 textBox.empty();
                 for (let rs of data) {
                     let item = $('<label><span></span><i class="icofont-close"></i></label>');
@@ -44,50 +80,60 @@ class YeeMultipleDialog {
                     item.find('span').text(rs.text);
                     textBox.append(item);
                 }
-                textData = data;
-                button.data('assign', { value: qel.val(), text: data });
+                itemsData = data;
+                button.data('assign', data);
             }
         };
-        textBox.on('click', 'label', function () {
-            let item = $(this);
+        let updateValue = function (data) {
+            if (data.length == 0) {
+                qel.val('');
+                return;
+            }
+            if (mode == 2) {
+                let temp = [];
+                for (let item of data) {
+                    temp.push(item.value);
+                }
+                qel.val(JSON.stringify(temp));
+            } else {
+                qel.val(JSON.stringify(data));
+            }
+        };
+        textBox.on('click', 'label i', function (ev) {
+            if (qel.is(':disabled')) {
+                return false;
+            }
+            let item = $(this).parent('label');
             item.remove();
-            let values = [];
-            let textItems = [];
+            let tempItems = [];
             textBox.find('label').each(function (idx, elem) {
                 let val = $(elem).data('value') || null;
                 if (val) {
-                    values.push(val);
                     let text = $(elem).data('text') || '';
-                    textItems.push({ value: val, text: text });
+                    tempItems.push({value: val, text: text});
                 }
             });
-            if (values.length == 0) {
-                qel.val('');
-                updateText([]);
+            if (tempItems.length == 0) {
+                updateValue([]);
+                updateItems([]);
+            } else {
+                updateValue(tempItems);
+                updateItems(tempItems);
             }
-            else {
-                qel.val(JSON.stringify(values));
-                updateText(textItems);
-            }
+            ev.preventDefault();
+            return false;
         });
-        updateText(textData);
+        updateItems(itemsData);
         button.on('success', function (ev, data) {
-            if (data && data.value && data.text) {
+            if (qel.is(':disabled')) {
+                return false;
+            }
+            if (data !== void 0 && Yee.isArray(data)) {
                 // @ts-ignore
                 let ret = qel.emit('select', data);
                 if (ret !== null) {
-                    if (typeof (data.value) == 'string' || typeof (data.value) == 'number') {
-                        qel.val(data.value);
-                    }
-                    else if (data.value instanceof Array) {
-                        if (data.value == 0) {
-                            qel.val('');
-                        }
-                        else {
-                            qel.val(JSON.stringify(data.value));
-                        }
-                    }
-                    updateText(data.text);
+                    updateValue(data);
+                    updateItems(data);
                     // @ts-ignore
                     if (typeof qel.setDefault == 'function') {
                         // @ts-ignore
@@ -96,17 +142,25 @@ class YeeMultipleDialog {
                 }
             }
         });
-        if (setting.clearBtn) {
+        let clearBtn = qel.data('clear-btn');
+        if (clearBtn) {
             let clearBtn = $('<a class="form-btn" href="javascript:;" style="margin-left: 5px">清除</a>').appendTo(span);
+            if (qel.is(':disabled')) {
+                clearBtn.addClass('disabled');
+            }
             clearBtn.on('click', function () {
+                if (qel.is(':disabled')) {
+                    return false;
+                }
                 qel.val('');
-                textBox.val('');
+                textBox.empty();
             });
         }
+        $(frag).insertAfter(qel);
         setTimeout(function () {
-            yee_1.Yee.update(span);
-        }, 100);
+            Yee.render(span);
+        }, 10);
     }
 }
-exports.YeeMultipleDialog = YeeMultipleDialog;
-//# sourceMappingURL=yee-multiple-dialog.js.map
+
+export {YeeMultipleDialog}

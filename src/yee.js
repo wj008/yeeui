@@ -1,417 +1,248 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_ajax_1 = require("./module/yee-ajax");
-const yee_confirm_1 = require("./module/yee-confirm");
-const yee_validate_1 = require("./module/yee-validate");
-const yee_remote_1 = require("./module/yee-remote");
-const yee_upload_1 = require("./module/yee-upload");
-const yee_number_1 = require("./module/yee-number");
-const yee_picker_1 = require("./module/yee-picker");
-const yee_event_1 = require("./module/yee-event");
-const yee_dialog_1 = require("./module/yee-dialog");
-const yee_linkage_1 = require("./module/yee-linkage");
-const yee_datatable_1 = require("./module/yee-datatable");
-const yee_pagebar_1 = require("./module/yee-pagebar");
-const yee_search_form_1 = require("./module/yee-search-form");
-const yee_select_dialog_1 = require("./module/yee-select-dialog");
-const yee_container_1 = require("./module/yee-container");
-const yee_form_tab_1 = require("./module/yee-form-tab");
-const yee_dynamic_1 = require("./module/yee-dynamic");
-const yee_xh_editor_1 = require("./module/yee-xh-editor");
-const yee_template_1 = require("./module/yee-template");
-const yee_delay_select_1 = require("./module/yee-delay-select");
-const yee_choice_1 = require("./module/yee-choice");
-const yee_multiple_dialog_1 = require("./module/yee-multiple-dialog");
-const yee_list_tab_1 = require("./module/yee-list-tab");
-const yee_tinymce_1 = require("./module/yee-tinymce");
-class Yee {
+import {YeeBase} from "./yee-base";
+import {Loader} from "./loader";
+import {YeeAjax} from "./module/yee-ajax";
+import {YeeChoice} from "./module/yee-choice";
+import {YeeValidate} from "./module/yee-validate";
+import {YeeConfirm} from "./module/yee-confirm";
+import {YeeDialog} from "./module/yee-dialog";
+import {YeeDynamic} from "./module/yee-dynamic";
+import {YeeLinkage} from "./module/yee-linkage";
+import {YeeTransfer} from "./module/yee-transfer";
+import {YeeContainer} from "./module/yee-container";
+import {YeeMultipleDialog} from "./module/yee-multiple-dialog";
+import {YeeSelectDialog} from "./module/yee-select-dialog";
+import {YeePicker} from "./module/yee-picker";
+import {YeeRemote} from "./module/yee-remote";
+import {YeeUpload} from "./module/yee-upload";
+import {YeeDelaySelect} from "./module/yee-delay-select";
+import {YeeXhEditor} from "./module/yee-xh-editor";
+import {YeeTinymce} from "./module/yee-tinymce";
+import {YeeSearchForm} from "./module/yee-search-form";
+import {YeeList} from "./module/yee-list";
+import {YeeDatatable} from "./module/yee-datatable";
+import {YeePagebar} from "./module/yee-pagebar";
+
+class Yee extends YeeBase {
     /**
-     * 加载文件
-     * @param url
+     * 预加载
      */
-    static loader(url) {
-        if (Yee._loadedFiles[url]) {
-            return Yee._loadedFiles[url];
-        }
-        let deferred = $.Deferred();
-        Yee._loadedFiles[url] = deferred;
-        let type = 'js';
-        let match = url.match(/^css\!(.*)$/i);
-        if (match) {
-            url = match[1];
-            type = 'css';
-        }
-        if (!/^\//.test(url)) {
-            url = Yee.baseUrl + url;
-        }
-        //加载css
-        if (type == 'css') {
-            let heads = document.getElementsByTagName('head');
-            if (heads.length > 0) {
-                let head = heads[0];
-                let link = document.createElement('link');
-                link.href = url;
-                link.setAttribute('rel', 'stylesheet');
-                link.setAttribute('type', 'text/css');
-                head.appendChild(link);
+    static preload() {
+        let loadPreload = function () {
+            if (Yee.config == null) {
+                Yee.config = {version: null, preload: {}, depends: {}};
             }
-            deferred.resolve(url);
-            return deferred;
-        }
-        //加载js
-        let script = document.createElement("script");
-        script.type = "text/javascript";
-        // @ts-ignore
-        if (script.readyState) {
-            // @ts-ignore
-            script.onreadystatechange = function () {
-                // @ts-ignore
-                if (script.readyState == "loaded" || script.readyState == "complete") {
-                    // @ts-ignore
-                    script.onreadystatechange = null;
-                    deferred.resolve(url);
-                }
-            };
-        }
-        else {
-            script.onload = function () {
-                deferred.resolve(url);
-            };
-            script.onerror = function () {
-                deferred.resolve(url);
-            };
-        }
-        try {
-            script.src = url;
-            let head = document.getElementsByTagName('head');
-            if (head.length > 0) {
-                head[0].appendChild(script);
-            }
-            else {
-                document.body.appendChild(script);
-            }
-        }
-        catch (e) {
-            deferred.resolve(url);
-        }
-        return deferred;
-    }
-    /**
-     * 加载依赖
-     * @param modules
-     * @param paths
-     */
-    static use(modules, paths = null) {
-        if (Yee._config == null) {
-            return;
-        }
-        let deferred = $.Deferred();
-        if (modules === null) {
-            return deferred.resolve();
-        }
-        if (typeof modules == 'string' && modules != '') {
-            modules = [modules];
-        }
-        if (!(modules instanceof Array) || modules.length == 0) {
-            return deferred.resolve();
-        }
-        let loadModule = function () {
-            //加载模块
-            let loadMaps = [];
-            for (let i = 0; i < modules.length; i++) {
-                let module = modules[i];
-                if (typeof module !== 'string' || module == '') {
+            let config = Yee.config;
+            let items = [];
+            for (let name in config.preload) {
+                let file = config.preload[name];
+                if (file == null || file == '') {
                     continue;
                 }
-                let file = module;
-                if (!/^css\!/i.test(module) && !/\.js$/i.test(module)) {
-                    //按指定路径
-                    if (paths && paths[module]) {
-                        file = paths[module];
-                    }
-                    //按配置文件
-                    else if (Yee._config.modules[module]) {
-                        file = Yee._config.modules[module];
-                    }
-                    //默认查找
-                    else {
-                        if (/^yee-/.test(module)) {
-                            file = module.replace(/^yee-/, 'module/yee-') + '.js';
-                        }
-                        else {
-                            console.error('不存在的模块：' + module);
-                        }
-                    }
-                }
-                if (file === null || file === '') {
-                    continue;
-                }
-                let addFile = function (item) {
-                    if (Yee._loadedFiles[item]) {
-                        let promise = Yee._loadedFiles[item];
-                        loadMaps.push(promise);
-                    }
-                    else {
-                        let promise = Yee._loadedFiles[item] = Yee.loader(item);
-                        loadMaps.push(promise);
-                    }
-                };
-                //如果是多个文件
-                if (Yee.isArray(file)) {
-                    for (let item of file) {
-                        addFile(item);
-                    }
-                }
-                else {
-                    addFile(file);
-                }
+                items.push(Loader.load(file, Yee.baseUrl));
             }
-            if (loadMaps.length == 0) {
-                deferred.resolve();
-                return deferred;
+            if (items.length == 0) {
+                return Promise.resolve([]);
             }
-            $.when.apply($, loadMaps).then(function () {
-                deferred.resolve();
-            });
-        };
-        //遍历依赖==
-        let dependModule = [];
-        let dependSet = {};
-        for (let i = 0; i < modules.length; i++) {
-            let module = modules[i];
-            if (Yee._config.depends[module]) {
-                let depends = Yee._config.depends[module];
-                if (typeof depends == 'function') {
-                    depends = depends();
-                }
-                if (typeof depends == 'string') {
-                    depends = [depends];
-                }
-                if (depends instanceof Array) {
-                    for (let j = 0; j < depends.length; j++) {
-                        let temp = depends[j];
-                        if (typeof temp !== 'string' || temp == '' || dependSet[temp]) {
-                            continue;
-                        }
-                        dependSet[temp] = true;
-                        dependModule.push(temp);
-                    }
-                }
-            }
+            return Promise.all(items);
         }
-        if (dependModule.length > 0) {
-            Yee.use(dependModule).then(function () {
-                loadModule();
-            });
-        }
-        else {
-            loadModule();
-        }
-        return deferred;
-    }
-    //顺序加载
-    static seq(modules, paths = null) {
-        let deferred = $.Deferred();
-        if (modules === null) {
-            return deferred.resolve();
-        }
-        if (typeof modules == 'string' && modules != '') {
-            modules = [modules];
-        }
-        if (!(modules instanceof Array) || modules.length == 0) {
-            return deferred.resolve();
-        }
-        let index = 0;
-        let next = function () {
-            if (index >= modules.length) {
-                return deferred.resolve();
-            }
-            let module = modules[index];
-            Yee.use(module, paths).then(next);
-            index++;
-        };
-        next();
-        return deferred;
-    }
-    /**
-     * 解析url
-     */
-    static parseUrl(url = '') {
-        let query = url.replace(/&+$/, '');
-        let path = query;
-        let param = {};
-        let hash = '';
-        let hIdx = query.search(/#/);
-        if (hIdx >= 0) {
-            path = query.substring(0, hIdx);
-            hash = query.substring(hIdx);
-        }
-        let idx = query.search(/\?/);
-        if (idx >= 0) {
-            path = query.substring(0, idx);
-            let pstr = query.substring(idx);
-            let m = pstr.match(/(\w+)(=([^&]*))?/g);
-            if (m) {
-                $(m).each(function (index, str) {
-                    let ma = String(str).match(/^(\w+)(?:=([^&]*))?$/);
-                    if (ma) {
-                        let val = ma[2] || '';
-                        param[ma[1]] = decodeURIComponent(val.replace(/\+/g, '%20'));
-                    }
+        if (Yee.config == null) {
+            return new Promise(function (resolve, reject) {
+                let configFile = 'yee.config.js?r=' + new Date().getTime();
+                Loader.load(configFile, Yee.baseUrl).then(function () {
+                    loadPreload().then(function (data) {
+                        resolve(data);
+                    }).catch(function (err) {
+                        reject(err);
+                    });
+                }).catch(function (err) {
+                    reject(err);
                 });
-            }
-        }
-        return { path: path, param: param, hash: hash };
-    }
-    /**
-     * 转成url
-     * @param info
-     */
-    static toUrl(info = {}) {
-        let path = info.path || window.location.pathname;
-        let param = info.param || {};
-        let qurey = [];
-        for (let key in param) {
-            if (param[key] == null || param[key] == '') {
-                qurey.push(key + '=');
-                continue;
-            }
-            let values = (param[key] + '').split(' ');
-            if (values.length == 1) {
-                qurey.push(key + '=' + encodeURIComponent(param[key]));
-                continue;
-            }
-            for (let i = 0; i < values.length; i++) {
-                values[i] = encodeURIComponent(values[i]);
-            }
-            qurey.push(key + '=' + values.join("%20"));
-        }
-        if (qurey.length == 0) {
-            return path;
-        }
-        return path + '?' + qurey.join('&') + (info.hash || '');
-    }
-    /**
-     * 获取数据
-     * @param elem
-     * @param prefix
-     */
-    static getElemData(elem, prefix) {
-        prefix = prefix.toLowerCase().replace(/[-](\w)/g, function (_, word) {
-            return word.toUpperCase();
-        });
-        let data = $.extend({}, $(elem).data() || {});
-        for (let key in data) {
-            let temp = key.split('@');
-            if (temp.length == 2) {
-                if (temp.length == 2 && temp[0] == prefix) {
-                    data[temp[1]] = data[key];
-                }
-                delete data[key];
-            }
-        }
-        //console.log(plugName, data);
-        return data;
-    }
-    /**
-     * 扩展模块
-     * @param selector
-     * @param name
-     * @param module
-     */
-    static extend(name, selector, module, prefix = null) {
-        let items = $.trim(selector).split(',');
-        for (let i = 0; i < items.length; i++) {
-            items[i] += "[yee-module~='" + name + "']";
-        }
-        let plug = 'yee_' + name.replace('-', '_').toLowerCase();
-        Yee._extendModules[name] = items.join(',');
-        if (prefix == null || prefix == '') {
-            prefix = name;
-        }
-        $.fn[plug] = function (options) {
-            options = options || {};
-            this.each(function (_, elem) {
-                let data = Yee.getElemData(elem, prefix);
-                data = $.extend({}, options, data);
-                elem.yee_modules = elem.yee_modules || {};
-                // 加载并创建模块对象
-                if (elem.yee_modules[name] === void 0) {
-                    elem.yee_modules[name] = true;
-                    elem.yee_modules[name] = new module(this, data);
-                }
             });
-            return this;
-        };
+        }
+        return loadPreload();
     }
+
     /**
-     * 更新
-     * @param base
+     * 渲染数据
      */
-    static update(base = null) {
-        let deferred = $.Deferred();
-        base = base || document.body;
-        let yeeItems = $('*[yee-module]', base);
-        let tempMaps = {};
-        let readyToLoad = []; //待加载的模块
-        //扫描所有节点--
-        yeeItems.each(function () {
-            let items = String($(this).attr('yee-module') || '').split(' ');
-            for (let i = 0; i < items.length; i++) {
-                let name = items[i];
+    static render(base = null) {
+        let renderItems = [];
+        if (base != null) {
+            let element = $(base).get(0);
+            if (element.hasAttribute('yee-module')) {
+                renderItems.push(element);
+            } else {
+                renderItems = element.querySelectorAll('[yee-module]');
+            }
+        } else {
+            renderItems = document.body.querySelectorAll('[yee-module]');
+        }
+        let renderMaps = {};
+        let readyToLoad = [];
+        for (let render of renderItems) {
+            let items = String(render.getAttribute('yee-module') || '').split(' ');
+            for (let name of items) {
                 if (name === '') {
                     continue;
                 }
-                if (tempMaps[name] || Yee._extendModules[name]) {
+                if (renderMaps[name] || Yee.renderModules[name]) {
                     continue;
                 }
-                let yee_src = $(this).attr('yee-src') || null;
-                tempMaps[name] = true;
-                readyToLoad.push({ module: 'yee-' + name, file: yee_src });
+                renderMaps[name] = true;
+                readyToLoad.push('yee-' + name);
             }
-        });
-        let update = function () {
-            let items = [];
-            for (let name in Yee._extendModules) {
-                let selector = Yee._extendModules[name];
-                let plug = 'yee_' + name.replace('-', '_').toLowerCase();
-                let el = $(selector, base);
-                if (el.length > 0 && typeof (el[plug]) == 'function') {
-                    items.push({ el: el, plug: plug });
+        }
+        let doRender = function () {
+            let elements = $(renderItems);
+            let rendered = [];
+            for (let name in Yee.renderModules) {
+                let render = Yee.renderModules[name];
+                let module = render.module;
+                let el = elements.filter(render.selector);
+                if (el.length == 0) {
+                    continue;
                 }
-            }
-            for (let i = 0; i < items.length; i++) {
-                let el = items[i].el;
-                let plug = items[i].plug;
-                el.each(function (_, elem) {
-                    let sel = $(elem);
+                el.each(function (_, element) {
+                    let sel = $(element);
                     if (sel.is('[yee-template]') || sel.parents('[yee-template]').length > 0) {
                         return;
                     }
-                    sel[plug]();
-                    sel.removeAttr('yee-module');
+                    if (element.yee_modules == void 0) {
+                        rendered.push(element);
+                        element.yee_modules = {};
+                    }
+                    // 加载并创建模块对象
+                    if (element.yee_modules[name] === void 0) {
+                        element.yee_modules[name] = true;
+                        element.yee_modules[name] = new module(element);
+                    }
                 });
             }
-            deferred.resolve();
-        };
-        if (readyToLoad.length == 0) {
-            update();
-            return deferred;
+            $(rendered).removeAttr('yee-module');
         }
-        let loadModules = [];
-        let paths = {};
-        for (let i = 0; i < readyToLoad.length; i++) {
-            let item = readyToLoad[i];
-            if (item.file) {
-                paths[item.module] = item.file;
-            }
-            loadModules.push(item.module);
+        if (readyToLoad.length > 0) {
+            return new Promise(function (resolve, reject) {
+                Yee.use(readyToLoad).then(function () {
+                    doRender();
+                    resolve(true);
+                }).catch(function (err) {
+                    reject(err);
+                });
+            });
         }
-        Yee.use(loadModules, paths).then(function () {
-            update();
-        });
-        return deferred;
+        doRender();
+        return Promise.resolve(true)
     }
+
+    /**
+     * 初始化执行
+     */
+    static init() {
+        if (Yee.renderState > 0) {
+            return Promise.resolve(false);
+        }
+        return new Promise(function (resolve, reject) {
+            Yee.renderState = 1;
+            Yee.preload().then(function () {
+                Yee.render().then(function () {
+                    Yee.renderState = 2;
+                    for (let fn of Yee.readyCallback) {
+                        if (typeof fn == 'function') {
+                            fn();
+                        }
+                    }
+                    resolve(true);
+                }).catch(function (err) {
+                    reject(err);
+                });
+            }).catch(function (err) {
+                reject(err);
+            });
+        });
+    }
+
+    /**
+     * 使用模块
+     * @param modules
+     */
+    static use(modules) {
+        if (Yee.config == null || modules === null) {
+            return Promise.resolve(0);
+        }
+        if (typeof modules == 'string' && modules != '') {
+            modules = [modules];
+        }
+        if (!(modules instanceof Array) || modules.length == 0) {
+            return Promise.resolve(0);
+        }
+        let config = Yee.config;
+        let loaded = 0;
+        return new Promise(function (resolve, reject) {
+            let next = function (idx) {
+                if (modules[idx] === void 0) {
+                    return resolve(loaded);
+                }
+                let name = modules[idx];
+                if (/^css\!/i.test(name) || /\.js$/i.test(name)) {
+                    Loader.load(name, Yee.baseUrl).then(function (ret) {
+                        if (ret.status) {
+                            loaded++;
+                        }
+                        next(idx + 1);
+                    }).catch(function (err) {
+                        reject(err);
+                    });
+                    return;
+                }
+                let file = config.depends[name] || '';
+                //没有配置
+                if (file == null || file == '') {
+                    if (/^yee-/.test(name)) {
+                        file = name + '.js';
+                        Loader.load(file, Yee.baseUrl + 'module/').then(function (ret) {
+                            if (ret.status) {
+                                loaded++;
+                            }
+                            next(idx + 1);
+                        }).catch(function (err) {
+                            reject(err);
+                        });
+                        return;
+                    }
+                }
+                //有配置
+                Loader.load(file, Yee.baseUrl).then(function (ret) {
+                    if (ret.status) {
+                        loaded++;
+                    }
+                    next(idx + 1);
+                }).catch(function (err) {
+                    reject(err);
+                });
+            };
+            next(0);
+        });
+    }
+
+    /**
+     * 页面加载后执行
+     * @param fn
+     */
+    static ready(fn) {
+        if (Yee.renderState == 2) {
+            return fn();
+        }
+        Yee.readyCallback.push(fn);
+    }
+
+    /**
+     * 设置配置文件
+     * @param config
+     */
+    static setConfig(config) {
+        Yee.config = config;
+    }
+
     /**
      * 获取模块实例
      * @param elem
@@ -434,302 +265,92 @@ class Yee {
         }
         return modules[name] === void 0 ? null : modules[name];
     }
-    //需要先加载的
-    static preload() {
-        let deferred = $.Deferred();
-        Yee.loader(Yee._configFile).then(function () {
-            //如果没有配置文件
-            if (Yee._config == null) {
-                Yee._config = { version: null, preloading: {}, modules: {}, depends: {}, dataFormat: null };
-            }
-            let config = Yee._config;
-            let loadMaps = [];
-            for (let name in config.preloading) {
-                let file = config.preloading[name];
-                if (Yee._loadedFiles[file]) {
-                    let promise = Yee._loadedFiles[file];
-                    loadMaps.push(promise);
-                    continue;
-                }
-                let promise = Yee._loadedFiles[file] = Yee.loader(file);
-                loadMaps.push(promise);
-            }
-            if (loadMaps.length == 0) {
-                deferred.resolve();
-                return deferred;
-            }
-            $.when.apply($, loadMaps).then(function () {
-                deferred.resolve();
-            });
-        });
-        return deferred;
-    }
-    static config(data) {
-        if (data === void 0) {
-            return Yee._config;
-        }
-        if (Yee._config == null) {
-            Yee._config = { version: null, preloading: {}, modules: {}, depends: {}, dataFormat: null };
-        }
-        Yee._config = $.extend(Yee._config, data);
-    }
+
     /**
-     * 初始化
+     * 定义模块
+     * @param selectors
+     * @param name
+     * @param module
      */
-    static init() {
-        let render = function () {
-            Yee.preload().then(function () {
-                //如果已经渲染就不再渲染
-                if (Yee.renderState > 0) {
-                    return;
-                }
-                Yee.renderState = 1; //开启渲染
-                Yee.update().then(function () {
-                    Yee.renderState = 2; //渲染结束
-                    if (Yee._readyCallback.length > 0) {
-                        for (let i = 0; i < Yee._readyCallback.length; i++) {
-                            if (typeof (Yee._readyCallback[i]) == 'function') {
-                                Yee._readyCallback[i]();
-                            }
-                        }
-                    }
-                });
-            });
+    static define(name, selectors, module) {
+        if (typeof selectors == 'string') {
+            selectors = [selectors];
+        }
+        let items = [];
+        for (let ext of selectors) {
+            items.push(ext + "[yee-module~='" + name + "']");
+        }
+        Yee.renderModules[name] = {
+            selector: items.join(','),
+            module: module
         };
-        let css = '[yee-module]{pointer-events: none;}';
-        let IE = navigator.userAgent.match(/MSIE\s*(\d+)/i);
-        if (IE && parseInt(IE[1]) <= 10) {
-            css = '[yee-module]{display: none;}';
-        }
-        let style = document.createElement("style");
-        style.setAttribute("type", "text/css");
-        if (style['styleSheet']) { // IE
-            style['styleSheet'].cssText = css;
-        }
-        else { // w3c
-            let cssText = document.createTextNode(css);
-            style.appendChild(cssText);
-        }
-        let head = document.getElementsByTagName('head');
-        if (head.length > 0) {
-            head[0].appendChild(style);
-        }
-        else {
-            document.documentElement.appendChild(style);
-        }
-        window.addEventListener('DOMContentLoaded', function () {
-            render();
-        }, false);
-        window.addEventListener('load', render, false);
     }
-    // 接管弹出层++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    static alert(msg, option = null, func = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].alert(msg, option, func);
+
+    static getModule(name) {
+        if (Yee.renderModules[name] === void 0) {
+            return null;
         }
-        if (Yee.isMobile) {
-            let data = { content: msg, btn: '确定' };
-            if (typeof func == 'function') {
-                data['yes'] = func;
-            }
-            return layer.open(data);
-        }
-        return layer.alert(msg, option, func);
-    }
-    static confirm(msg, option, yesFunc = null, noFunc = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].confirm(msg, option, yesFunc, noFunc);
-        }
-        if (Yee.isMobile) {
-            let data = { content: msg, btn: ['确认', '取消'] };
-            if (typeof option == 'function') {
-                noFunc = yesFunc;
-                yesFunc = option;
-            }
-            if (typeof yesFunc == 'function') {
-                data['yes'] = yesFunc;
-            }
-            if (typeof noFunc == 'function') {
-                data['no'] = noFunc;
-            }
-            return layer.open(data);
-        }
-        return layer.confirm(msg, option, yesFunc, noFunc);
-    }
-    static msg(msg, option = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].msg(msg, option);
-        }
-        if (Yee.isMobile) {
-            let data = { content: msg, skin: 'msg' };
-            if (option && option.time) {
-                data['time'] = Math.round(option.time / 1000);
-            }
-            else {
-                data['time'] = 1;
-            }
-            return layer.open(data);
-        }
-        if (option && !option['time']) {
-            option['time'] = 1000;
-        }
-        else if (!option) {
-            option = { 'time': 1000 };
-        }
-        return layer.msg(msg, option);
-    }
-    static load(type, option = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].load(type, option);
-        }
-        if (Yee.isMobile) {
-            return layer.open({ type: 2 });
-        }
-        return layer.load(type, option);
-    }
-    static close(index) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].close(index);
-        }
-        return layer.close(index);
-    }
-    static closeAll(type = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].closeAll(type);
-        }
-        if (Yee.isMobile) {
-            return layer.closeAll();
-        }
-        return layer.closeAll(type);
-    }
-    static dialog(url, title = '网页对话框', setting = {}, callWindow = window, qel = null) {
-        if (window.top !== window && window.top['Yee']) {
-            return window.top['Yee'].dialog(url, title, setting, window, qel);
-        }
-        return yee_dialog_1.YeeDialog.open(url, title, setting, callWindow, qel);
-    }
-    static emit(event, ...data) {
-        return Yee.event.emit(event, ...data);
-    }
-    static on(event, func) {
-        return Yee.event.on(event, func);
-    }
-    static one(event, func) {
-        return Yee.event.one(event, func);
-    }
-    static off(event, func = null) {
-        return Yee.event.off(event, func);
-    }
-    static readyDialog(func) {
-        yee_dialog_1.YeeDialog.dialogHandle().then(func);
-    }
-    /**
-     * 判断数组
-     * @param obj
-     */
-    static isArray(obj) {
-        if (Array.isArray) {
-            return Array.isArray(obj);
-        }
-        else {
-            return Object.prototype.toString.call(obj) === '[object Array]';
-        }
-    }
-    /**
-     * 判断是对象
-     * @param val
-     */
-    static isObject(val) {
-        return val != null && typeof val === 'object' && Array.isArray(val) === false;
-    }
-    static randomString(len = 32) {
-        let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
-        let maxPos = chars.length;
-        let run = '';
-        for (let i = 0; i < len; i++) {
-            run += chars.charAt(Math.floor(Math.random() * maxPos));
-        }
-        return run;
-    }
-    static getTemplate(tplId) {
-        for (let temp in yee_template_1.YeeTemplate.instance) {
-            if (temp == tplId) {
-                return yee_template_1.YeeTemplate.instance[temp];
-            }
-        }
-        return null;
+        return Yee.renderModules[name].module;
     }
 }
-Yee.version = '1.0.0';
-Yee._extendModules = {};
-Yee._readyCallback = [];
-Yee._config = null;
-Yee._loadedFiles = {};
-Yee._configFile = 'yee.config.js?r=' + new Date().getTime();
-//渲染状态
-Yee.renderState = 0;
+
+Yee.version = '2.0.0';
+Yee.config = null;
+//根目录
 Yee.baseUrl = (function () {
     let scripts = document.getElementsByTagName('script'), script = scripts[scripts.length - 1];
     let src = script.hasAttribute ? script.src : script.getAttribute('src');
     let m = src.match(/^(.*)yee(-\d+(\.\d+)*)?(\.min)?\.js/i);
     return m ? m[1] : '';
 })();
-Yee.event = new yee_event_1.YeeEvent();
-Yee.isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
-/**
- * 准备好后执行
- * @param fn
- */
-Yee.ready = function (fn) {
-    if (Yee.renderState == 2) {
-        return fn();
-    }
-    Yee._readyCallback.push(fn);
-};
-exports.Yee = Yee;
-let jqInit = $.fn.ready; //覆盖jq 的 $(function);
-$.fn.extend({
-    ready: function (fn) {
-        if (Yee.renderState == 2) {
-            return jqInit.call(this, fn);
+//渲染状态
+Yee.renderState = 0;
+Yee.readyCallback = [];
+Yee.renderModules = {};
+
+(function () {
+    let jQReady = $.fn.ready;
+    $.fn.extend({
+        ready: function (fn) {
+            if (Yee.renderState == 2) {
+                return jQReady.call(this, fn);
+            }
+            Yee.ready(fn);
+        },
+        emit: function (event, ...args) {
+            return $(this).triggerHandler(event, args);
+        },
+        instance: function (name) {
+            return Yee.instance(this[0], name);
         }
-        Yee.ready(fn);
-    },
-    emit: function (...args) {
-        let event = args[0] || null;
-        args.shift();
-        return $(this).triggerHandler(event, args);
-    },
-    instance: function (name) {
-        return Yee.instance(this[0], name);
-    }
-});
-//*********************************************************************************
-//注册插件
-Yee.extend('template', '*', yee_template_1.YeeTemplate);
-Yee.extend('confirm', ':input,button,form,a', yee_confirm_1.YeeConfirm);
-Yee.extend('validate', 'form', yee_validate_1.YeeValidate);
-Yee.extend('remote', ':input', yee_remote_1.YeeRemote);
-Yee.extend('upload', 'input,a', yee_upload_1.YeeUpload);
-Yee.extend('number', ':input', yee_number_1.YeeNumber);
-Yee.extend('integer', ':input', yee_number_1.YeeInteger);
-Yee.extend('picker', ':input', yee_picker_1.YeePicker);
-Yee.extend('dialog', 'a,button,input', yee_dialog_1.YeeDialog);
-Yee.extend('linkage', ':input', yee_linkage_1.YeeLinkage);
-Yee.extend('select-dialog', ':input,a', yee_select_dialog_1.YeeSelectDialog);
-Yee.extend('multiple-dialog', ':input', yee_multiple_dialog_1.YeeMultipleDialog);
-Yee.extend('pagebar', 'div', yee_pagebar_1.YeePagebar);
-Yee.extend('search-form', 'form', yee_search_form_1.YeeSearchForm);
-Yee.extend('datatable', 'table', yee_datatable_1.YeeDatatable);
-Yee.extend('container', 'div', yee_container_1.YeeContainer);
-Yee.extend('form-tab', 'ul', yee_form_tab_1.YeeFormTab);
-Yee.extend('list-tab', 'ul', yee_list_tab_1.YeeListTab);
-Yee.extend('dynamic', ':input', yee_dynamic_1.YeeDynamic);
-Yee.extend('xh-editor', ':input', yee_xh_editor_1.YeeXhEditor);
-Yee.extend('tinymce', ':input', yee_tinymce_1.YeeTinymce);
-Yee.extend('choice', 'a', yee_choice_1.YeeChoice);
-Yee.extend('ajax', 'a,form,:input', yee_ajax_1.YeeAjax);
-Yee.extend('delay-select', 'select', yee_delay_select_1.YeeDelaySelect);
-Yee.init();
-window['Yee'] = Yee;
-//# sourceMappingURL=yee.js.map
+    });
+    window.addEventListener('DOMContentLoaded', function () {
+        Yee.init();
+    }, false);
+    window.addEventListener('load', Yee.init, false);
+    window['Yee'] = Yee;
+
+    Yee.define('validate', 'form', YeeValidate);
+    Yee.define('ajax', [':input', 'button', 'a', 'form'], YeeAjax);
+    Yee.define('choice', 'a', YeeChoice);
+    Yee.define('confirm', ['input', 'button', 'form', 'a'], YeeConfirm);
+    Yee.define('dialog', ['button', 'a'], YeeDialog);
+    Yee.define('dynamic', ':input', YeeDynamic);
+    Yee.define('linkage', 'input', YeeLinkage);
+    Yee.define('transfer', 'input', YeeTransfer);
+    Yee.define('container', 'div', YeeContainer);
+    Yee.define('multiple-dialog', ':input', YeeMultipleDialog);
+    Yee.define('select-dialog', [':input', 'button', 'a'], YeeSelectDialog);
+    Yee.define('picker', ['input', 'a'], YeePicker);
+    Yee.define('remote', ':input', YeeRemote);
+    Yee.define('upload', ['input', 'a'], YeeUpload);
+    Yee.define('delay-select', 'select', YeeDelaySelect);
+    Yee.define('xh-editor', ':input', YeeXhEditor);
+    Yee.define('tinymce', ':input', YeeTinymce);
+    Yee.define('search-form', 'form', YeeSearchForm);
+    Yee.define('list', '*', YeeList);
+    Yee.define('datatable', 'table', YeeDatatable);
+    Yee.define('pagebar', 'div', YeePagebar);
+
+
+})();

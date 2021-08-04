@@ -1,25 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_validate_1 = require("./yee-validate");
-const yee_1 = require("../yee");
+import {YeeValidate} from "./yee-validate";
+
 class YeeLinkage {
-    constructor(elem, setting = {}) {
-        this.setting = null;
+    constructor(elem) {
         this.inputs = [];
         this.qel = null;
         this.level = 0;
         this.values = [];
         this.pending = null;
-        this.setting = setting = $.extend({
-            source: null,
-            method: 'get',
-            level: 0,
-            group: null
-        }, setting, yee_1.Yee.getElemData(elem, 'v'));
-        let that = this;
-        that.level = parseInt(/^\d+$/.test(String(setting.level)) ? String(setting.level) : '0');
+        this.qelName = null;
         let qel = this.qel = $(elem);
+        let that = this;
+        let strLevel = String(qel.data('level') || '0');
+        that.level = parseInt(/^\d+$/.test(strLevel) ? strLevel : '0');
         qel.hide();
+        this.qelName = qel.attr('name') || null;
         let strVal = String(qel.val() || '');
         let values = /^\[.*\]$/.test(strVal) ? JSON.parse(strVal) : null;
         if (values !== null) {
@@ -27,32 +21,33 @@ class YeeLinkage {
                 values[i] = values[i] == 0 ? "" : values[i];
             }
         }
-        let source = setting.source;
+        this.values = values == null ? [] : values;
+        let source = qel.data('source') || '';
         that.pending = true;
         this.createBox(0, source).then(function () {
-            // console.log('渲染全部完成');
             that.pending = false;
+            that.values = [];
         });
     }
+
     updateValue() {
         let values = [];
         for (let input of this.inputs) {
             let value = input.val();
             if (/^[+-]?\d+$/.test(value)) {
                 value = parseInt(value);
-            }
-            else if (/^[+-]?\d+\.\d+$/.test(value)) {
+            } else if (/^[+-]?\d+\.\d+$/.test(value)) {
                 value = parseFloat(value);
             }
             values.push(value);
         }
         if (values.length != this.inputs.length) {
             this.qel.val('');
-        }
-        else {
+        } else {
             this.qel.val(JSON.stringify(values));
         }
     }
+
     update(source = null) {
         let deferred = $.Deferred();
         let that = this;
@@ -76,20 +71,20 @@ class YeeLinkage {
             }
         }
         this.values = values;
-        source = source || that.setting.source;
+        source = source || qel.data('source');
         this.createBox(0, source).then(function () {
             //console.log('gengx渲染全部完成');
             deferred.resolve();
             that.pending = false;
+            that.values = [];
         });
         return deferred;
     }
+
     copyAttribute(box, index) {
         let level = index + 1;
         let qel = this.qel;
-        let setting = this.setting;
-        let config = yee_validate_1.YeeValidate.config;
-        let valGroup = setting.group;
+        let config = YeeValidate.config;
         let qelName = qel.attr('name') || null;
         //拷贝属性
         for (let key of ['class', 'style', 'readonly', 'disabled', 'size']) {
@@ -102,72 +97,45 @@ class YeeLinkage {
             }
         }
         //拷贝验证数据
-        for (let key of ['header', 'rule', 'message', 'default', 'correct']) {
+        for (let key of ['header', 'valid-rule', 'valid-default', 'valid-correct']) {
             let dataName = key + String(level);
-            let dataVal = setting[dataName] === void 0 ? null : setting[dataName];
-            if ((key == 'rule' || key == 'message') && valGroup && valGroup.rule) {
-                if (valGroup.rule[index] && key == 'rule') {
-                    box.data('v@rule', valGroup.rule[index]);
-                    continue;
-                }
-                if (valGroup.message[index] && key == 'message') {
-                    box.data('v@message', valGroup.message[index]);
-                    continue;
-                }
-            }
+            let dataVal = qel.data(dataName) === void 0 ? null : qel.data(dataName);
             if (dataVal !== null) {
-                if (key == 'header') {
-                    box.data(key, dataVal);
-                }
-                else {
-                    box.data('v@' + key, dataVal);
-                }
-            }
-            else {
+                box.data(key, dataVal);
+            } else {
                 dataName = key + 's';
-                dataVal = setting[dataName] === void 0 ? null : setting[dataName];
+                dataVal = qel.data(dataName) === void 0 ? null : qel.data(dataName);
                 if (dataVal && dataVal[index] !== void 0) {
-                    if (key == 'header') {
-                        box.data(key, dataVal[index]);
-                    }
-                    else {
-                        box.data('v@' + key, dataVal[index]);
-                    }
-                }
-                else {
-                    dataVal = setting[key] === void 0 ? null : setting[key];
+                    box.data(key, dataVal[index]);
+                } else {
+                    dataVal = qel.data(key) === void 0 ? null : qel.data(key);
                     if (dataVal !== null) {
-                        if (key == 'header') {
-                            box.data(key, dataVal);
-                        }
-                        else {
-                            box.data('v@' + key, dataVal);
-                        }
+                        box.data(key, dataVal);
                     }
                 }
             }
         }
         //拷贝名称
-        if (qelName) {
-            let boxName = setting['name' + level] || null;
+        if (this.qelName) {
+            let boxName = qel.data('name' + level) || null;
             if (boxName) {
                 box.attr('name', boxName);
-            }
-            else {
-                box.attr('name', qelName + '[]');
+                if (qelName) {
+                    qel.removeAttr('name');
+                }
+            } else {
+                box.attr('name', this.qelName + '[]');
             }
         }
-        // console.log(setting);
         //是否禁用验证
-        if (setting['output'] !== void 0) {
-            box.data('v@output', setting['output']);
-        }
-        else {
-            box.data('v@output', '#' + qelName + '-validation');
+        if (qel.data('valid-display') !== void 0) {
+            box.data('valid-display', qel.data('valid-display'));
+        } else {
+            box.data('valid-display', '#' + this.qelName + '-validation');
         }
         box.show();
-        //console.log(box.data());
     }
+
     resetBox(box, index, items = null) {
         let deferred = $.Deferred();
         let level = index + 1;
@@ -180,53 +148,43 @@ class YeeLinkage {
         //添加头
         let header = box.data('header') || '';
         if (header) {
-            if (yee_1.Yee.isArray(header) && header.length >= 2) {
+            if (Yee.isArray(header) && header.length >= 2) {
                 box[0].add(new Option(header[1], header[0]));
-            }
-            else {
+            } else {
                 box[0].add(new Option(header, ''));
             }
         }
         let defVal = this.values[index] || '';
         if (items !== null) {
             for (let item of items) {
-                let data = { value: null, text: null, childs: null };
+                let data = {value: null, text: null, childs: null};
                 if (typeof item == 'number' || typeof item == 'string') {
                     data.value = item;
                     data.text = item;
-                }
-                else {
+                } else {
                     if (item['value'] !== void 0) {
                         data.value = item.value;
-                    }
-                    else if (item['v'] !== void 0) {
+                    } else if (item['v'] !== void 0) {
                         data.value = item.v;
-                    }
-                    else if (item[0] !== void 0) {
+                    } else if (item[0] !== void 0) {
                         data.value = item[0];
-                    }
-                    else {
+                    } else {
                         continue;
                     }
                     if (item['text'] !== void 0) {
                         data.text = item.text;
-                    }
-                    else if (item['t'] !== void 0) {
+                    } else if (item['t'] !== void 0) {
                         data.text = item.t;
-                    }
-                    else if (item[1] !== void 0) {
+                    } else if (item[1] !== void 0) {
                         data.text = item[1];
-                    }
-                    else {
+                    } else {
                         data.text = data.value;
                     }
                     if (item['childs'] !== void 0) {
                         data.childs = item.childs;
-                    }
-                    else if (item['c'] !== void 0) {
+                    } else if (item['c'] !== void 0) {
                         data.childs = item.c;
-                    }
-                    else if (item[2] !== void 0) {
+                    } else if (item[2] !== void 0) {
                         data.childs = item[2];
                     }
                 }
@@ -252,6 +210,7 @@ class YeeLinkage {
         });
         return deferred;
     }
+
     createBox(index = 0, items = null) {
         let deferred = $.Deferred();
         if (this.level !== 0 && index + 1 > this.level) {
@@ -260,36 +219,45 @@ class YeeLinkage {
         let that = this;
         let inputs = this.inputs;
         let qel = this.qel;
-        let method = this.setting.method.toLocaleLowerCase();
+        let method = qel.data('method') || 'get';
         if (typeof items === 'string') {
             if (items == '') {
-                return deferred.resolve();
+                that.createBox(index, null).then(function () {
+                    deferred.resolve();
+                });
+                return deferred;
             }
             if (YeeLinkage.cacheItemMap[items]) {
                 return that.createBox(index, YeeLinkage.cacheItemMap[items]);
             }
-            $[method](items, function (ret) {
+            let info = Yee.parseUrl(items);
+            Yee.fetch(info.path, info.param, method).then(function (ret) {
                 if (ret.status === true && ret.data) {
                     YeeLinkage.cacheItemMap[items] = ret.data;
                     that.createBox(index, YeeLinkage.cacheItemMap[items]).then(function () {
                         deferred.resolve();
                     });
+                } else {
+                    Yee.alert('无法加载远程数据！');
                 }
-                else {
-                    yee_1.Yee.alert('无法加载远程数据！');
-                }
-            }, 'json');
+            }).catch(function (e) {
+                console.error(e);
+            });
             return deferred;
         }
+        let clear = function () {
+            while (that.inputs.length > 0 && that.inputs.length > index) {
+                that.inputs.pop().remove();
+            }
+        };
         if (index + 1 > 10 || (this.level == 0 && items == null)) {
+            clear();
             return deferred.resolve();
         }
         //清空后面的选项
         let box = that.inputs[index] || null;
         if (this.level == 0 || box == null) {
-            while (that.inputs.length > 0 && that.inputs.length > index) {
-                that.inputs.pop().remove();
-            }
+            clear();
             if (this.level == 0) {
                 if (items == null || items.length == 0) {
                     return deferred.resolve();
@@ -298,8 +266,7 @@ class YeeLinkage {
             box = $('<select>');
             if (inputs.length == 0 || index == 0) {
                 box.insertAfter(qel);
-            }
-            else {
+            } else {
                 box.insertAfter(inputs[index - 1]);
             }
             inputs.push(box);
@@ -320,5 +287,5 @@ class YeeLinkage {
     }
 }
 YeeLinkage.cacheItemMap = {};
-exports.YeeLinkage = YeeLinkage;
-//# sourceMappingURL=yee-linkage.js.map
+
+export {YeeLinkage}

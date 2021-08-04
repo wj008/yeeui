@@ -1,19 +1,28 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
-const yee_event_1 = require("./yee-event");
-class YeePicker extends yee_event_1.YeeEvent {
-    constructor(elem, setting) {
+import {YeeEvent} from "../libs/yee-event";
+
+class YeePicker extends YeeEvent {
+    constructor(elem) {
         super();
         this.showType = '';
         this.dateValue = null;
-        this.setting = setting;
-        let qem = this.qem = $(elem);
-        this.input = this.qem;
+        let qel = this.qel = $(elem);
+        this.input = this.qel;
+        this.useTime = qel.data('use-time') || false;
+        this.format = qel.data('format') || null;
+        if (this.useTime) {
+            if (!this.format) {
+                this.format = 'yyyy-MM-dd HH:mm:ss';
+            }
+        } else {
+            if (!this.format) {
+                this.format = 'yyyy-MM-dd';
+            }
+        }
         let that = this;
-        if (!this.qem.is(':input')) {
-            if (setting['input']) {
-                this.input = $(setting['input']);
+        if (!this.qel.is(':input')) {
+            let input = qel.data('input');
+            if (input) {
+                this.input = $(input);
             }
         }
         this.input.attr('autocomplete', 'off');
@@ -36,10 +45,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         let toolRightBtn = $('<button><svg viewBox="0 0 24 24" class="yee-picker-svg-icon"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button>').appendTo(toolbarLayout);
         this.createYMBox();
         this.createDateBox();
-        if (this.setting.useTime) {
-            if (!that.setting.format) {
-                that.setting.format = 'yyyy-MM-dd HH:mm:ss';
-            }
+        if (this.useTime) {
             this.createTimeBox();
             that.on('changeDateTime', function (date) {
                 // console.log('changeDateTime', date);
@@ -49,13 +55,12 @@ class YeePicker extends yee_event_1.YeeEvent {
                 let week = date.getDay();
                 if (month == 11 || month == 12) {
                     toolMonthLabel.text(year + '年 ' + YeePicker.monthMap[month] + '月');
-                }
-                else {
+                } else {
                     toolMonthLabel.text(year + '年 ' + YeePicker.monthMap[month]);
                 }
                 toolDayLabel.text(day + '日');
                 displayLabel.text(year + ' ' + YeePicker.dateFormat(date, 'MM-dd HH:mm:ss') + ' ' + YeePicker.weekMap[week]);
-                let change = YeePicker.dateFormat(date, that.setting.format);
+                let change = YeePicker.dateFormat(date, that.format);
                 //console.log('picker.change', change);
                 that.emit('picker.change', change);
             });
@@ -69,15 +74,14 @@ class YeePicker extends yee_event_1.YeeEvent {
                 toolDayLabel.show();
             });
             that.on('choiceDateTime', function (date) {
-                let choice = YeePicker.dateFormat(date, that.setting.format);
+                let choice = YeePicker.dateFormat(date, that.format);
                 if (that.input) {
                     that.input.val(choice);
                 }
                 that.hide();
                 that.emit('picker.choice', choice);
             });
-        }
-        else {
+        } else {
             //  console.log('222', option.useTime);
             that.on('changeDate', function (date) {
                 let month = date.getMonth() + 1;
@@ -86,17 +90,16 @@ class YeePicker extends yee_event_1.YeeEvent {
                 let week = date.getDay();
                 if (month == 11 || month == 12) {
                     toolMonthLabel.text(year + '年 ' + YeePicker.monthMap[month] + '月');
-                }
-                else {
+                } else {
                     toolMonthLabel.text(year + '年 ' + YeePicker.monthMap[month]);
                 }
                 toolDayLabel.text(day + '日');
                 displayLabel.text(year + ' ' + YeePicker.dateFormat(date, 'MM-dd') + ' ' + YeePicker.weekMap[week]);
-                let change = YeePicker.dateFormat(date, that.setting.format);
+                let change = YeePicker.dateFormat(date, that.format);
                 that.emit('picker.change', change);
             });
             that.on('choiceDate', function (date) {
-                let choice = YeePicker.dateFormat(date, that.setting.format);
+                let choice = YeePicker.dateFormat(date, that.format);
                 if (that.input) {
                     that.input.val(choice);
                 }
@@ -105,64 +108,48 @@ class YeePicker extends yee_event_1.YeeEvent {
             });
         }
         that.emit('showDate');
-        picker.on('mousedown', function (ev) {
-            ev.stopPropagation();
-        });
-        $(document).on('mousedown', function () {
-            picker.hide();
-        });
-        $(window).on('blur', function () {
-            picker.hide();
-        });
         toolLeftBtn.on('click', function () {
             if (that.showType == 'Time') {
                 that.emit('decDay');
-            }
-            else {
+            } else {
                 that.emit('decMonth');
             }
         });
         toolRightBtn.on('click', function () {
             if (that.showType == 'Time') {
                 that.emit('addDay');
-            }
-            else {
+            } else {
                 that.emit('addMonth');
             }
         });
         toolDisplay.on('click', function () {
             if (that.showType == 'Date') {
                 that.emit('showYM');
-            }
-            else {
+            } else {
                 that.emit('showDate');
             }
         });
         let lock = false;
         let mousewheel = function (ev, delta) {
+            ev.stopPropagation();
             if (lock) {
                 return;
             }
             lock = true;
-            if (that.setting.useTime) {
+            if (that.useTime) {
                 if (delta == 1 && that.showType == 'Time') {
                     that.emit('showDate');
-                }
-                else if (delta == 1 && that.showType == 'Date') {
+                } else if (delta == 1 && that.showType == 'Date') {
                     that.emit('showYM');
-                }
-                else if (delta == -1 && that.showType == 'YM') {
+                } else if (delta == -1 && that.showType == 'YM') {
                     that.emit('showDate');
-                }
-                else if (delta == -1 && that.showType == 'Date') {
+                } else if (delta == -1 && that.showType == 'Date') {
                     that.emit('showTime');
                 }
-            }
-            else {
+            } else {
                 if (delta == 1 && that.showType == 'Date') {
                     that.emit('showYM');
-                }
-                else if (delta == -1 && that.showType == 'YM') {
+                } else if (delta == -1 && that.showType == 'YM') {
                     that.emit('showDate');
                 }
             }
@@ -170,46 +157,54 @@ class YeePicker extends yee_event_1.YeeEvent {
                 lock = false;
             }, 300);
         };
-        yee_1.Yee.use('jquery-mousewheel').then(function () {
-            that.mainLayout.on('mousewheel', mousewheel);
-        });
-        qem.on('click', function () {
-            let offset = { top: 0, left: 0 };
+        if (!Yee.isMobile) {
+            Yee.use('jquery-mousewheel').then(function (r) {
+                if (r) {
+                    that.mainLayout.on('mousewheel', mousewheel);
+                }
+            });
+        }
+        qel.on('click', function () {
+            let offset = {top: 0, left: 0};
             if (that.input) {
                 let val = that.input.val() || '';
                 if (val) {
                     that.dateValue = new Date(val);
                     if (isNaN(that.dateValue)) {
-                        that.dateValue = YeePicker.toDate(val, that.setting.format);
+                        that.dateValue = YeePicker.toDate(val, that.format);
                     }
                 }
                 offset = that.input.offset();
                 offset.top += that.input.outerHeight();
-            }
-            else {
-                offset = qem.offset();
-                offset.top += qem.outerHeight();
+            } else {
+                offset = qel.offset();
+                offset.top += qel.outerHeight();
             }
             that.show(offset);
         });
-        qem.on('setTime', function (ev, date) {
+        qel.on('setTime', function (ev, date) {
             if (typeof date == 'string') {
                 that.dateValue = new Date(date);
                 if (isNaN(that.dateValue)) {
-                    that.dateValue = YeePicker.toDate(that.dateValue, that.setting.format);
+                    that.dateValue = YeePicker.toDate(that.dateValue, that.format);
                 }
-            }
-            else if (date instanceof Date) {
+            } else if (date instanceof Date) {
                 that.dateValue = date;
             }
-            if (that.setting.useTime) {
+            if (that.useTime) {
                 that.emit('setDateTime', that.dateValue);
-            }
-            else {
+            } else {
                 that.emit('setDate', that.dateValue);
             }
         });
+        picker.on('mousedown', function (ev) {
+            ev.stopPropagation();
+        });
+        $(document).on('mousedown', function () {
+            picker.hide();
+        });
     }
+
     static zeroize(value, length = 2) {
         let zeros = '';
         value = String(value);
@@ -218,7 +213,11 @@ class YeePicker extends yee_event_1.YeeEvent {
         }
         return zeros + value;
     }
-    static dateFormat(date, format = 'yyyy-MM-dd') {
+
+    static dateFormat(date, format) {
+        if (format == null) {
+            format = 'yyyy-MM-dd';
+        }
         let mask = format.replace(/"[^"]*"|'[^']*'|\b(?:d{1,4}|M{1,4}|(?:yyyy|yy)|([hHmstT])\1?|[lLZ])\b/g, function ($0) {
             switch ($0) {
                 case 'd':
@@ -274,6 +273,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         });
         return mask;
     }
+
     static toDate(str, format = 'yyyy-MM-dd') {
         let temp1 = format.split(/(yyyy|MMMM|dddd|MMM|ddd|yy|MM|dd|HH|mm|ss|TT|tt|hh|M|d|H|m|s|h|L|l|Z)/);
         let keys = {};
@@ -383,8 +383,7 @@ class YeePicker extends yee_event_1.YeeEvent {
                     let d = str.substr(index + 1, 1);
                     if (/^\d$/.test(d)) {
                         val = keys[key] = str.substr(index, 2);
-                    }
-                    else {
+                    } else {
                         val = keys[key] = str.substr(index, 1);
                     }
                     break;
@@ -466,8 +465,7 @@ class YeePicker extends yee_event_1.YeeEvent {
                 if (hh != 12) {
                     args['HH'] = hh + 12;
                 }
-            }
-            else {
+            } else {
                 if (hh == 12) {
                     args['HH'] = 0;
                 }
@@ -480,8 +478,7 @@ class YeePicker extends yee_event_1.YeeEvent {
                 if (h != 12) {
                     args['HH'] = h + 12;
                 }
-            }
-            else {
+            } else {
                 if (h == 12) {
                     args['HH'] = 0;
                 }
@@ -511,6 +508,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         //console.log(args);
         return new Date(args['yyyy'], args['MM'] - 1, args['dd'], args['HH'], args['mm'], args['ss']);
     }
+
     static getDayMap(dataYear, dataMonth) {
         let lastDay = new Date(dataYear, dataMonth, 0).getDate();
         let dayMap = [];
@@ -525,6 +523,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         }
         return dayMap;
     }
+
     createYMBox() {
         let that = this;
         let mainLayout = this.mainLayout;
@@ -532,7 +531,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         let tempA = $('<a class="yee-picker-year-layout" href="javascript:;"></a>').appendTo(baseBox);
         let selYearBox = $('<div class="yee-picker-sel-year"></div>').appendTo(tempA);
         let selMonthBox = $('<div class="yee-picker-sel-month"></div>').appendTo(baseBox);
-        yee_1.Yee.use('jquery-mousewheel').then(function () {
+        Yee.use('jquery-mousewheel').then(function () {
             selYearBox.on('mousewheel', function (ev) {
                 ev.stopPropagation();
             });
@@ -569,7 +568,7 @@ class YeePicker extends yee_event_1.YeeEvent {
                     let utop = ul.position().top;
                     let top = currentLi.position().top - 65;
                     top = top - utop;
-                    selYearBox.animate({ scrollTop: top }, 200);
+                    selYearBox.animate({scrollTop: top}, 200);
                 });
             }
         });
@@ -585,11 +584,12 @@ class YeePicker extends yee_event_1.YeeEvent {
             $(function () {
                 let height = baseBox.outerHeight(true);
                 mainLayout.height(height);
-                mainLayout.animate({ scrollTop: 0 }, 200, 'swing');
+                mainLayout.animate({scrollTop: 0}, 200, 'swing');
             });
         });
         return baseBox;
     }
+
     createDateBox() {
         let that = this;
         let mainLayout = this.mainLayout;
@@ -607,8 +607,7 @@ class YeePicker extends yee_event_1.YeeEvent {
             }
             if (dataYear == year && dataMonth == month) {
                 that.emit('setDay', day);
-            }
-            else {
+            } else {
                 dateDay = day;
             }
             if (year != dataYear) {
@@ -659,16 +658,14 @@ class YeePicker extends yee_event_1.YeeEvent {
                     let d = weekMap[j];
                     if (d == 0) {
                         $('<span>').appendTo(row);
-                    }
-                    else {
+                    } else {
                         let btn = $('<button index="' + d + '"></button>').appendTo(row);
                         $('<span></span>').text(d).appendTo(btn);
                         btn.on('click', d, function (ev) {
                             that.emit('setDay', ev.data);
-                            if (that.setting.useTime) {
+                            if (that.useTime) {
                                 that.emit('showTime');
-                            }
-                            else {
+                            } else {
                                 setTimeout(function () {
                                     let date = new Date(dataYear, dataMonth - 1, dateDay);
                                     that.emit('choiceDate', date);
@@ -684,17 +681,16 @@ class YeePicker extends yee_event_1.YeeEvent {
                 let btn = $('<button class="yee-picker-today"><span>今天</span></button>').appendTo(row);
                 btn.on('click', function (ev) {
                     that.emit('setDate', new Date());
-                    if (!that.setting.useTime) {
+                    if (!that.useTime) {
                         that.emit('choiceDate', new Date());
                     }
                 });
-            }
-            else {
+            } else {
                 let row = baseBox.find('div.yee-picker-day-row:last');
                 let btn = $('<button class="yee-picker-today"><span>今天</span></button>').appendTo(row);
                 btn.on('click', function (ev) {
                     that.emit('setDate', new Date());
-                    if (!that.setting.useTime) {
+                    if (!that.useTime) {
                         that.emit('choiceDate', new Date());
                     }
                 });
@@ -777,10 +773,9 @@ class YeePicker extends yee_event_1.YeeEvent {
             }
             that.showType = 'Date';
             let height = baseBox.outerHeight(true);
-            if (that.setting.useTime) {
-                height += 30;
-            }
-            else {
+            if (that.useTime) {
+                height += 35;
+            } else {
                 height += 5;
             }
             mainLayout.height(height);
@@ -788,13 +783,13 @@ class YeePicker extends yee_event_1.YeeEvent {
             if (force || firstShow) {
                 firstShow = false;
                 mainLayout.scrollTop(top);
-            }
-            else {
-                mainLayout.animate({ scrollTop: top }, 200, 'swing');
+            } else {
+                mainLayout.animate({scrollTop: top}, 200, 'swing');
             }
         });
         return baseBox;
     }
+
     createTimeBox() {
         let that = this;
         let mainLayout = this.mainLayout;
@@ -816,6 +811,7 @@ class YeePicker extends yee_event_1.YeeEvent {
         let item1 = $('<div></div>').appendTo(hourBox);
         let decBtn1 = $('<button>-</button>').appendTo(item1);
         let addBtn1 = $('<button>+</button>').appendTo(item1);
+
         function changeDateTime() {
             if (dateHour < 0 || dateMinute < 0 || dateSecond < 0) {
                 return;
@@ -827,6 +823,7 @@ class YeePicker extends yee_event_1.YeeEvent {
             let dataTime = new Date(dataDate.getFullYear(), dataDate.getMonth(), dataDate.getDate(), dateHour, dateMinute, dateSecond);
             that.emit('changeDateTime', dataTime);
         }
+
         btn2.on('click', function () {
             if (dateHour < 0 || dateMinute < 0 || dateSecond < 0) {
                 return;
@@ -895,9 +892,8 @@ class YeePicker extends yee_event_1.YeeEvent {
             let top = baseBox.position().top + mainLayout.scrollTop() - 5;
             if (force) {
                 mainLayout.scrollTop(top);
-            }
-            else {
-                mainLayout.animate({ scrollTop: top }, 200, 'swing');
+            } else {
+                mainLayout.animate({scrollTop: top}, 200, 'swing');
             }
         });
         //设置小时
@@ -1067,43 +1063,48 @@ class YeePicker extends yee_event_1.YeeEvent {
         btn1.on('click', function () {
             if (that.showType == 'Date') {
                 that.emit('showTime');
-            }
-            else {
+            } else {
                 that.emit('showDate');
             }
         });
     }
+
     show(offset) {
-        let dw = $(document).width();
-        let dh = $(document).height();
         this.picker.show();
         let time = this.dateValue || new Date();
-        if (this.setting.useTime) {
+        if (this.useTime) {
             this.emit('setDateTime', time);
-        }
-        else {
+        } else {
             this.emit('setDate', time);
         }
-        dw = dw - this.picker.outerWidth(true) - 10;
-        dh = dh - 300;
-        if (offset.left > dw) {
-            offset.left = dw;
+        if (Yee.isMobile) {
+            this.picker.addClass('mobile');
+        } else {
+            let dw = $(document).width();
+            let dh = $(document).height();
+            dw = dw - this.picker.outerWidth(true) - 10;
+            dh = dh - 300;
+            if (offset.left > dw) {
+                offset.left = dw;
+            }
+            if (offset.top > dh) {
+                offset.top = dh;
+            }
+            if (offset.left < 0) {
+                offset.left = 0;
+            }
+            if (offset.top < 0) {
+                offset.top = 0;
+            }
+            this.picker.css({left: offset.left + 'px', top: offset.top + 'px'});
         }
-        if (offset.top > dh) {
-            offset.top = dh;
-        }
-        if (offset.left < 0) {
-            offset.left = 0;
-        }
-        if (offset.top < 0) {
-            offset.top = 0;
-        }
-        this.picker.css({ left: offset.left + 'px', top: offset.top + 'px' });
     }
+
     hide() {
         this.picker.hide();
     }
 }
+
 YeePicker.monthMap = {
     1: '一月',
     2: '二月',
@@ -1119,5 +1120,5 @@ YeePicker.monthMap = {
     12: '十二'
 };
 YeePicker.weekMap = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-exports.YeePicker = YeePicker;
-//# sourceMappingURL=yee-picker.js.map
+
+export {YeePicker}

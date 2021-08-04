@@ -1,40 +1,78 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeSelectDialog {
-    constructor(elem, setting) {
+    constructor(elem) {
         let qel = $(elem);
         if (qel.is(':input')) {
-            let textBox = $('<input type="text" readonly="readonly"/>').insertAfter(qel);
+            let frag = document.createDocumentFragment();
+            let textBox = $('<input type="text" readonly="readonly"/>').appendTo(frag);
             textBox.attr('class', qel.attr('class'));
             textBox.attr('style', qel.attr('style'));
             textBox.attr('placeholder', qel.attr('placeholder'));
-            qel.hide();
+            if (qel.is(':disabled')) {
+                textBox.prop('disabled', true);
+            }
+            let mode = parseInt(qel.data('mode') || 1);
+            let value = qel.val() || '';
+            value = value.toString();
+            if (mode != 2 && value == '[]') {
+                value = '';
+            }
+            let text = qel.data('text') || value;
+            let itemData = {value: value, text: text};
+            if (mode != 2) {
+                if (/^\{/.test(value) && /^\}$/.test(value)) {
+                    try {
+                        let temp = JSON.parse(value);
+                        if (temp['value'] !== void 0 && temp['text'] !== void 0) {
+                            itemData = temp;
+                        }
+                    } catch (e) {
+                    }
+                }
+            }
             let span = $('<span></span>').insertAfter(textBox);
             let button = $('<a class="form-btn" href="javascript:;" yee-module="dialog" style="margin-left: 5px">选择</a>').appendTo(span);
-            if (setting.btnText) {
-                button.text(setting.btnText);
+            if (qel.is(':disabled')) {
+                button.addClass('disabled');
+            }
+            let btnText = qel.data('btn-text');
+            if (btnText) {
+                button.text(btnText);
             }
             button.data('carry', '#' + qel.attr('id'));
-            if (setting.width) {
-                button.data('width', setting.width);
+            let width = qel.data('width') || 0;
+            if (width) {
+                button.data('width', width);
             }
-            if (setting.height) {
-                button.data('height', setting.height);
+            let height = qel.data('height') || 0;
+            if (height) {
+                button.data('height', height);
             }
             textBox.on('click', function () {
                 button.trigger('click');
             });
-            button.data('url', setting.href || setting.url || '');
-            button.data('assign', { value: qel.val(), text: qel.data('text') || '' });
-            textBox.val(qel.data('text') || '');
+            let url = qel.data('url') || '';
+            button.data('url', url);
+            button.data('assign', itemData);
+            textBox.val(itemData.text);
+            let updateValue = function (data) {
+                textBox.val(data.text || '');
+                if ((data.value === '' || data.value === null) && (data.text === null || data.text === '')) {
+                    qel.val('');
+                    return;
+                }
+                if (mode == 2) {
+                    qel.val(data.value);
+                    return;
+                } else {
+                    qel.val(JSON.stringify(data));
+                }
+            };
             button.on('success', function (ev, data) {
-                if (data && data.value && data.text) {
+                if (data) {
                     // @ts-ignore
                     let ret = qel.emit('select', data);
                     if (ret !== null) {
-                        qel.val(data.value);
-                        textBox.val(data.text);
+                        updateValue(data);
                         // @ts-ignore
                         if (typeof qel.setDefault == 'function') {
                             // @ts-ignore
@@ -43,21 +81,22 @@ class YeeSelectDialog {
                     }
                 }
             });
-            if (setting.clearBtn) {
+            let clearBtn = qel.data('clear-btn');
+            if (clearBtn) {
                 let clearBtn = $('<a class="form-btn" href="javascript:;" style="margin-left: 5px">清除</a>').appendTo(span);
                 clearBtn.on('click', function () {
                     qel.val('');
                     textBox.val('');
                 });
             }
+            $(frag).insertAfter(qel);
             setTimeout(function () {
-                yee_1.Yee.update(span);
-            }, 100);
-        }
-        else if (qel.is('a')) {
+                Yee.render(span);
+            }, 10);
+        } else if (qel.is('a')) {
             qel.on('click', function () {
                 let data = $(this).data() || null;
-                yee_1.Yee.readyDialog(function (dialog) {
+                Yee.readyDialog(function (dialog) {
                     dialog.success(data);
                     dialog.close();
                 });
@@ -65,5 +104,5 @@ class YeeSelectDialog {
         }
     }
 }
-exports.YeeSelectDialog = YeeSelectDialog;
-//# sourceMappingURL=yee-select-dialog.js.map
+
+export {YeeSelectDialog}

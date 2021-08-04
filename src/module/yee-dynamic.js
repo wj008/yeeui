@@ -1,7 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeDynamic {
+    constructor(elem) {
+        this.qel = $(elem);
+        this.dynamicData = this.qel.data('dynamic') || null;
+        this.init();
+    }
+
     static hasValue(arr, value) {
         if (typeof value == 'string' || typeof value == 'number' || typeof value == 'boolean') {
             for (let val of arr) {
@@ -10,8 +13,7 @@ class YeeDynamic {
                 }
             }
             return false;
-        }
-        else {
+        } else {
             for (let val of arr) {
                 if (JSON.stringify(val) == JSON.stringify(value)) {
                     return true;
@@ -20,30 +22,32 @@ class YeeDynamic {
             return false;
         }
     }
+
     static dynamic(type, names) {
         if (typeof names == 'string') {
             names = [names];
         }
         for (let name of names) {
             let rowId = ('#row_' + name).replace(/(:|\.)/g, '\\$1');
-            let boxId = ('#' + name).replace(/(:|\.)/g, '\\$1');
+            let boxId = (name).replace(/(:|\.)/g, '\\$1');
+            boxId = ':input[name=' + boxId + ']';
             switch (type) {
                 case 'show':
                     $(rowId).show();
-                    $(rowId + ' :input').data('v@disabled', false);
+                    $(rowId + ' :input').data('valid-disabled', false);
                     break;
                 case 'hide':
                     $(rowId).hide();
-                    $(rowId + ' :input').data('v@disabled', true);
+                    $(rowId + ' :input').data('valid-disabled', true);
                     if (typeof ($(rowId + ' :input')['setDefault']) == 'function') {
                         $(rowId + ' :input')['setDefault']();
                     }
                     break;
                 case 'on':
-                    $(boxId).data('v@disabled', false);
+                    $(boxId).data('valid-disabled', false);
                     break;
                 case 'off':
-                    $(boxId).data('v@disabled', true);
+                    $(boxId).data('valid-disabled', true);
                     if (typeof $(boxId)['setDefault'] == 'function') {
                         $(boxId)['setDefault']();
                     }
@@ -53,11 +57,7 @@ class YeeDynamic {
             }
         }
     }
-    constructor(elem, setting = {}) {
-        this.qel = $(elem);
-        this.setting = setting;
-        this.init();
-    }
+
     dynamicItem(item) {
         //显示
         if (item.show !== void 0) {
@@ -76,17 +76,18 @@ class YeeDynamic {
             YeeDynamic.dynamic('on', item['on']);
         }
     }
+
     notifyBind() {
-        let setting = this.setting;
-        if (setting['bind']) {
-            let bind = $(setting['bind']);
+        let selector = this.qel.data('bind');
+        if (selector) {
+            let bind = $(selector);
             if (bind.is(':visible')) {
                 bind.triggerHandler('dynamic');
             }
         }
     }
+
     initCheckBox() {
-        let setting = this.setting;
         let qel = this.qel;
         let name = qel.attr('name');
         let form = qel.parents('form:first');
@@ -94,9 +95,9 @@ class YeeDynamic {
         let that = this;
         let timer = null;
         let initEvent = function () {
-            let data = setting.dynamic || null;
+            let data = that.dynamicData;
             let checked = form.find(':input[name="' + name + '"]:checked');
-            if (yee_1.Yee.isArray(data)) {
+            if (Yee.isArray(data)) {
                 for (let item of data) {
                     //相等
                     if (item.eq !== void 0) {
@@ -123,7 +124,7 @@ class YeeDynamic {
                         }
                     }
                     //包含
-                    if (item.in !== void 0 && yee_1.Yee.isArray(item.in)) {
+                    if (item.in !== void 0 && Yee.isArray(item.in)) {
                         $(checked).each(function (_, elm) {
                             let val = $(elm).val() || '';
                             if (YeeDynamic.hasValue(item.in, val)) {
@@ -133,7 +134,7 @@ class YeeDynamic {
                         });
                     }
                     //不包含
-                    if (item.nin !== void 0 && yee_1.Yee.isArray(item.nin)) {
+                    if (item.nin !== void 0 && Yee.isArray(item.nin)) {
                         let nin = true;
                         $(checked).each(function (_, elm) {
                             let val = $(elm).val() || '';
@@ -168,9 +169,9 @@ class YeeDynamic {
         });
         initEvent();
     }
+
     init() {
         let qel = this.qel;
-        let setting = this.setting;
         let that = this;
         //checkbox
         if (qel.is(':checkbox')) {
@@ -182,7 +183,7 @@ class YeeDynamic {
             let form = qel.parents('form:first');
             let items = form.find(':radio[name="' + name + '"]');
             items.on('click', function () {
-                qel.triggerHandler('change');
+                qel.emit('change');
             });
         }
         let timer = null;
@@ -197,8 +198,8 @@ class YeeDynamic {
             if (qel.is(':checkbox')) {
                 val = qel.is(':checked') ? true : false;
             }
-            let data = setting.dynamic || null;
-            if (yee_1.Yee.isArray(data)) {
+            let data = that.dynamicData;
+            if (Yee.isArray(data)) {
                 for (let k in data) {
                     let item = data[k];
                     if (item.eq !== void 0) {
@@ -211,12 +212,12 @@ class YeeDynamic {
                             that.dynamicItem(item);
                         }
                     }
-                    if (item.in !== void 0 && yee_1.Yee.isArray(item.in)) {
+                    if (item.in !== void 0 && Yee.isArray(item.in)) {
                         if (YeeDynamic.hasValue(item.nin, val)) {
                             that.dynamicItem(item);
                         }
                     }
-                    if (item.nin !== void 0 && yee_1.Yee.isArray(item.nin)) {
+                    if (item.nin !== void 0 && Yee.isArray(item.nin)) {
                         if (YeeDynamic.hasValue(item.nin, val)) {
                             that.dynamicItem(item);
                         }
@@ -244,5 +245,5 @@ class YeeDynamic {
         initEvent();
     }
 }
-exports.YeeDynamic = YeeDynamic;
-//# sourceMappingURL=yee-dynamic.js.map
+
+export {YeeDynamic}

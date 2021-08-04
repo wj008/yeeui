@@ -1,13 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeSearchForm {
-    constructor(elem, setting) {
+    constructor(elem) {
         let qel = this.qel = $(elem);
-        setting = $.extend({ method: 'get', autoUrl: 1, bind: '#list', url: qel.attr('action') }, setting);
-        let list = $(setting.bind);
-        if (setting.autoUrl == 1) {
-            setting.url = window.location.pathname + '.json';
+        let that = this;
+        this.url = qel.attr('action') || null;
+        this.method = qel.attr('method') || 'get';
+        this.bind = qel.data('bind') || '#list';
+        this.autoUrl = qel.data('auto-url') || 1;
+        let list = $(this.bind);
+        if (this.url == null && this.autoUrl == 1) {
+            this.url = window.location.pathname + '.json';
         }
         this.initForm();
         qel.on('submit', function (ev) {
@@ -18,14 +19,15 @@ class YeeSearchForm {
             if (list.length > 0) {
                 list.each(function () {
                     // @ts-ignore
-                    $(this).emit('load', setting.url + '?' + sendData, {}, true);
+                    $(this).emit('load', that.url + '?' + sendData, {}, true);
                 });
             }
             return false;
         });
     }
+
     initForm() {
-        let args = yee_1.Yee.parseUrl(window.location.href);
+        let args = Yee.parseUrl(window.location.href);
         for (let name in args.param) {
             let box = this.qel.find(':input[name="' + name + '"]');
             if (box.length > 0) {
@@ -33,17 +35,17 @@ class YeeSearchForm {
                     if (box.val() == args.param[name]) {
                         box.prop("checked", true);
                     }
-                }
-                else {
+                } else {
                     box.val(args.param[name]);
                 }
             }
         }
     }
+
     reset() {
         this.qel.get(0).reset();
         this.initForm();
     }
 }
-exports.YeeSearchForm = YeeSearchForm;
-//# sourceMappingURL=yee-search-form.js.map
+
+export {YeeSearchForm}

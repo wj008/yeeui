@@ -1,8 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeTinymce {
-    constructor(elem, setting) {
+    constructor(elem) {
+        this.qel = null;
+        let qel = this.qel = $(elem);
+        let setting = qel.data();
         if (!elem.style.width) {
             elem.style.width = '100%';
         }
@@ -13,26 +13,31 @@ class YeeTinymce {
             language: 'zh_CN',
             plugins: [
                 'advlist autolink lists link image charmap print preview anchor textcolor',
-                'searchreplace visualblocks code fullscreen',
+                'searchreplace visualblocks code fullscreen codesample hr pagebreak',
                 'insertdatetime media table contextmenu paste code help wordcount'
             ],
             menubar: (function () {
-                if (setting.typeMode == 'basic') {
+                if (setting.typeMode == 'basic' || setting.typeMode == 'mini') {
                     return false;
                 }
                 return true;
             })(),
-            toolbar: 'insert | undo redo |  formatselect | bold italic forecolor backcolor | table link image codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+            toolbar: (function () {
+                if (setting.typeMode == 'mini') {
+                    return 'formatselect | bold italic forecolor backcolor | table link image codesample removeformat | help fullscreen';
+                }
+                return 'insert | undo redo |  formatselect | bold italic forecolor backcolor | table link image codesample | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help fullscreen';
+            })(),
             image_advtab: true,
             images_upload_url: '/service/tiny_upload',
             images_upload_credentials: false,
             image_class_list: [
-                { title: 'None', value: '' },
-                { title: 'Some class', value: 'class-name' }
+                {title: 'None', value: ''},
+                {title: 'Some class', value: 'class-name'}
             ],
             importcss_append: true,
             templates: [
-                { title: 'Some title 1', description: 'Some desc 1', content: 'My content' },
+                {title: 'Some title 1', description: 'Some desc 1', content: 'My content'},
                 {
                     title: 'Some title 2',
                     description: 'Some desc 2',
@@ -48,8 +53,7 @@ class YeeTinymce {
                     let text = $.trim(html.replace(reg2, ''));
                     if (text == '') {
                         e.content = '';
-                    }
-                    else {
+                    } else {
                         e.content = $.trim(html);
                     }
                 });
@@ -61,7 +65,8 @@ class YeeTinymce {
             relative_urls: false,
         };
         setting = $.extend(basic, setting);
-        yee_1.Yee.seq(['tinymce', 'tinymce-jquery', 'tinymce-lang']).then(function () {
+        let that = this;
+        Yee.use(['tinymce', 'tinymce-jquery', 'tinymce-lang']).then(function () {
             if (YeeTinymce.baseUrl == null) {
                 YeeTinymce.baseUrl = (function () {
                     let scripts = document.getElementsByTagName('script');
@@ -76,14 +81,38 @@ class YeeTinymce {
                 })();
             }
             setting.content_css = [
-                '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+                //   '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
                 YeeTinymce.baseUrl + 'css/codepen.min.css'
             ];
             //@ts-ignore
-            $(elem).tinymce(setting);
+            qel.tinymce(setting);
+            that.initForm();
         });
     }
+
+    initForm() {
+        let qel = this.qel;
+        let form = qel.parents('form:first');
+        if (form.length) {
+            let currentListener = form[0].onsubmit;
+            if (currentListener) {
+                form.on('submit', function (e) {
+                    return currentListener.call(this, e.originalEvent);
+                });
+                form[0].onsubmit = null;
+            }
+            let submitFunc = function (ev) {
+                let code = qel.val();
+                //  console.log(code)
+            };
+            form.on('submit', submitFunc);
+            // @ts-ignore
+            let typeEvents = ($._data(form[0], "events") || form.data("events")).submit;
+            typeEvents.unshift(typeEvents.pop());
+        }
+    }
 }
+
 YeeTinymce.baseUrl = null;
-exports.YeeTinymce = YeeTinymce;
-//# sourceMappingURL=yee-tinymce.js.map
+
+export {YeeTinymce}

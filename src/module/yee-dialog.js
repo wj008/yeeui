@@ -1,100 +1,61 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeDialog {
     constructor(elem = null) {
         let qel = $(elem);
-        if (qel.attr('on-success')) {
-            let code = qel.attr('on-success');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('success', func);
-        }
-        if (qel.attr('on-fail')) {
-            let code = qel.attr('on-fail');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('fail', func);
-        }
-        if (qel.attr('on-close')) {
-            let code = qel.attr('on-close');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('closeDialog', func);
-        }
-        if (qel.attr('on-open')) {
-            let code = qel.attr('on-open');
-            let func = new Function('ev', code);
-            // @ts-ignore
-            qel.on('openDialog', func);
-        }
+        Yee.bindEvent(qel, 'openDialog', 'data');
+        Yee.bindEvent(qel, 'success');
+        Yee.bindEvent(qel, 'fail');
+        Yee.bindEvent(qel, 'closeDialog');
         qel.on('click', function (ev) {
             let qel = $(this);
             if (qel.is('.disabled') || qel.is(':disabled')) {
                 return false;
             }
-            let ret = qel.triggerHandler('openDialog');
-            if (ret === false) {
+            let url = qel.data('url') || qel.attr('href');
+            let title = qel.attr('title') || '网页对话框';
+            let carry = qel.data('carry') || '';
+            let info = Yee.parseUrl(url);
+            Yee.carryData(carry, info.param);
+            // @ts-ignore
+            if (qel.emit('openDialog', info) === false) {
                 return false;
             }
-            let setting = yee_1.Yee.getElemData(qel, 'Dialog');
-            setting = $.extend({ height: 720, width: 1060 }, setting);
-            let url = setting.url || qel.attr('href');
-            let title = qel.attr('title') || '网页对话框';
-            yee_1.Yee.dialog(url, title, setting, window, qel);
+            url = Yee.toUrl(info);
+            let setting = qel.data();
+            Yee.dialog(url, setting, qel, window);
             ev.preventDefault();
             return false;
         });
     }
-    static open(url, title = '网页对话框', setting = {}, callWindow = window, elem = null) {
+
+    static open(url, setting = {}, elem = null, callWindow = window) {
         setting.width = setting.width || 1060;
         setting.height = setting.height || 720;
         let winW = $(window).width() - 20;
         let winH = $(window).height() - 20;
         setting.width = setting.width > winW ? winW : setting.width;
         setting.height = setting.height > winH ? winH : setting.height;
-        //携带输入框
-        if (setting['carry']) {
-            let along = $(setting['carry']);
-            if (along.length > 0) {
-                let args = yee_1.Yee.parseUrl(url);
-                args.path = args.path || window.location.pathname;
-                setting.path = args.path;
-                along.each(function (idx, el) {
-                    let qel = $(el);
-                    if (!qel.is(':input')) {
-                        return;
-                    }
-                    let name = qel.attr('name') || qel.attr('id') || '';
-                    if (name == '') {
-                        return;
-                    }
-                    let val = qel.val() || '';
-                    if (qel.is(':radio')) {
-                        let name2 = qel.attr('name');
-                        let form = qel.parents('form:first');
-                        let box = form.find(':radio[name="' + name2 + '"]:checked');
-                        val = box.val() || '';
-                    }
-                    if (qel.is(':checkbox')) {
-                        val = qel.is(':checked') ? qel.val() : '';
-                    }
-                    args.param[name] = val;
-                });
-                url = yee_1.Yee.toUrl(args);
-            }
-        }
+        setting.autoSize = setting.autoSize === void 0 ? false : setting.autoSize;
+        setting.anim = setting.anim === void 0 ? 0 : setting.anim;
         let dialogWindow = null;
         let iframe = null;
+        let state = 'restore';
+        let windowHeight = 0;
+        let timer = null;
         let layIndex = layer.open({
             type: 2,
-            title: title,
+            title: setting.title || '网页对话框',
+            // @ts-ignore
+            anim: setting.anim,
             area: [setting.width + 'px', setting.height + 'px'],
             maxmin: setting.maxmin === void 0 ? true : setting.maxmin,
             content: url,
             //关闭触发消息
             end: function () {
                 let data = null;
+                if (timer) {
+                    window.clearInterval(timer);
+                    timer = null;
+                }
                 if (dialogWindow && dialogWindow.returnValue !== void 0) {
                     data = dialogWindow.returnValue;
                 }
@@ -102,15 +63,22 @@ class YeeDialog {
                     // @ts-ignore
                     elem.emit('closeDialog', data);
                 }
-                // @ts-ignore 给原来的窗口发送一个消息
-                if (callWindow.Yee) {
-                    // @ts-ignore
-                    callWindow.Yee.emit('closeDialog', data);
-                }
                 if (iframe != null) {
                     iframe.remove();
                     iframe = null;
                 }
+            },
+            full: function () {
+                state = 'full';
+                if (iframe) {
+                    iframe.css('height', '100%');
+                }
+            },
+            min: function () {
+                state = 'min';
+            },
+            restore: function () {
+                state = 'restore';
             },
             success: function (layero, index) {
                 dialogWindow = null;
@@ -123,14 +91,37 @@ class YeeDialog {
                     if (!(dialogWindow.document.title === null || dialogWindow.document.title === '')) {
                         layer.title(dialogWindow.document.title, index);
                     }
-                    let handle = {
-                        emitParent(event, ...data) {
-                            // @ts-ignore
-                            if (callWindow.Yee) {
-                                // @ts-ignore
-                                callWindow.Yee.emit(event, ...data);
+                    if (setting.autoSize && dialogWindow.document.body) {
+                        dialogWindow.document.body.style.overflowY = 'hidden';
+                        timer = window.setInterval(function () {
+                            let body = dialogWindow.document.body;
+                            if (!body) {
+                                if (timer) {
+                                    window.clearInterval(timer);
+                                    timer = null;
+                                }
+                                return;
                             }
-                        },
+                            let height = body.clientHeight;
+                            if (height != windowHeight) {
+                                windowHeight = height;
+                                if (state == 'restore') {
+                                    layer.iframeAuto(index);
+                                }
+                            }
+                        }, 50);
+                    } else {
+                        if (iframe) {
+                            timer = window.setInterval(function () {
+                                if (iframe == null) {
+                                    window.clearInterval(timer);
+                                    return;
+                                }
+                                iframe.css({height: '100%'});
+                            }, 10);
+                        }
+                    }
+                    let handle = {
                         emit(event, ...data) {
                             if (elem) {
                                 // @ts-ignore
@@ -152,6 +143,14 @@ class YeeDialog {
                         close() {
                             layer.close(layIndex);
                         },
+                        state() {
+                            return state;
+                        },
+                        iframeAuto() {
+                            if (state == 'restore') {
+                                layer.iframeAuto(index);
+                            }
+                        },
                         assign: setting.assign || null,
                         callWindow: callWindow,
                         elem: elem,
@@ -164,21 +163,21 @@ class YeeDialog {
         });
         return layIndex;
     }
+
     /**
      * 异步获得句柄
      */
     static dialogHandle() {
-        let deferred = $.Deferred();
-        let getHandle = function () {
-            if (window['dialogHandle']) {
-                return deferred.resolve(window['dialogHandle']);
-            }
-            setTimeout(getHandle, 1);
-        };
-        getHandle();
-        return deferred;
+        return new Promise(function (resolve) {
+            let getHandle = function () {
+                if (window['dialogHandle']) {
+                    return resolve(window['dialogHandle']);
+                }
+                setTimeout(getHandle, 1);
+            };
+            getHandle();
+        });
     }
 }
-YeeDialog.readyFunc = [];
-exports.YeeDialog = YeeDialog;
-//# sourceMappingURL=yee-dialog.js.map
+
+export {YeeDialog}

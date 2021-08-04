@@ -1,49 +1,62 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeChoice {
-    constructor(elem, setting = {}) {
-        let qel = $(elem);
-        // @ts-ignore
-        let obj = qel.instance('ajax');
-        let name = setting.name || 'choice';
-        let getValue = function () {
-            let items = $(':checkbox:checked').filter(function () {
-                return $(this).attr('name') == name;
-            });
-            if (items.length == 0) {
-                yee_1.Yee.msg('没有选择任何选项', { icon: 0, time: 2000 });
-                return null;
-            }
-            let value = [];
-            items.each(function (_, el) {
-                value.push($(el).val() || '');
-            });
-            return value.join(',');
-        };
-        if (obj) {
+    constructor(elem) {
+        let qel = this.qel = $(elem);
+        let ajax = qel.instance('ajax');
+        let dialog = qel.instance('dialog');
+        let that = this;
+        let name = this.name = qel.data('name') || 'choice';
+        if (ajax) {
             qel.on('before', function (ev, info) {
-                let value = getValue();
+                let value = that.getValue();
                 if (value === null) {
                     return false;
                 }
                 info.param[name] = value;
             });
-        }
-        else {
-            qel.on('click', function () {
-                let value = getValue();
+        } else if (dialog) {
+            qel.on('openDialog', function (ev, info) {
+                let value = that.getValue();
                 if (value === null) {
                     return false;
                 }
-                let info = yee_1.Yee.parseUrl(qel.attr('href') || '');
                 info.param[name] = value;
-                let url = yee_1.Yee.toUrl(info);
+            });
+        } else {
+            qel.on('click', function () {
+                let value = that.getValue();
+                if (value === null) {
+                    return false;
+                }
+                let info = Yee.parseUrl(qel.attr('href') || '');
+                info.param[name] = value;
+                let url = Yee.toUrl(info);
                 qel.attr('href', url);
                 return true;
             });
         }
     }
+
+    getValue() {
+        let qel = this.qel;
+        let name = this.name;
+        let emptyMessage = qel.data('empty-message') || '没有勾选任何信息';
+        let items = $(':checkbox:checked').filter(function () {
+            return $(this).attr('name') == name;
+        });
+        if (items.length == 0) {
+            if (qel.data('alert')) {
+                Yee.alert(emptyMessage, {icon: 0});
+            } else {
+                Yee.msg(emptyMessage, {icon: 0, time: 3000});
+            }
+            return null;
+        }
+        let value = [];
+        items.each(function (_, el) {
+            value.push($(el).val() || '');
+        });
+        return value.join(',');
+    }
 }
-exports.YeeChoice = YeeChoice;
-//# sourceMappingURL=yee-choice.js.map
+
+export {YeeChoice}

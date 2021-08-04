@@ -1,53 +1,70 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const yee_1 = require("../yee");
 class YeeAjax {
-    constructor(elem, setting = {}) {
-        let qel = this.qel = $(elem);
-        this.setting = setting;
+    constructor(element) {
+        this.qel = $(element);
+        if (this.qel.is('a') || this.qel.is('button')) {
+            this.initTag();
+        } else if (this.qel.is('form')) {
+            this.initForm();
+        } else if (this.qel.is(':input')) {
+            this.initInput();
+        }
+        Yee.bindEvent(this.qel, 'before', 'data');
+        Yee.bindEvent(this.qel, 'success');
+        Yee.bindEvent(this.qel, 'fail');
+        Yee.bindEvent(this.qel, 'back');
+    }
+
+    initForm() {
+        let qel = this.qel;
         let that = this;
-        //链接
-        if (qel.is('a')) {
-            qel.on('click', function (ev) {
-                if (ev.result === false) {
-                    return false;
-                }
-                let url = setting.url || $(this).attr('href');
-                let method = setting.method || 'get';
-                let info = yee_1.Yee.parseUrl(url);
-                that.send(info.path, info.param, method);
+        qel.on('submit', function (ev) {
+            if (ev.result === false) {
                 return false;
-            });
-        }
-        //表单
-        else if (qel.is('form')) {
-            qel.on('submit', function (ev) {
-                if (ev.result === false) {
-                    return false;
-                }
-                let method = (qel.attr('method') || 'GET').toUpperCase();
-                let action = qel.attr('action') || window.location.href;
-                if (method == 'GET') {
-                    let info = yee_1.Yee.parseUrl(action);
-                    action = info.path;
-                }
-                let sendData = qel.serialize();
+            }
+            let method = (qel.attr('method') || 'GET').toUpperCase();
+            let action = qel.attr('action') || window.location.href;
+            if (method == 'GET') {
+                let info = Yee.parseUrl(action);
+                action = info.path;
+            }
+            setTimeout(function () {
+                let sendData = new FormData(qel.get(0));
                 that.send(action, sendData, method);
+            }, 50);
+            return false;
+        });
+    }
+
+    initTag() {
+        let qel = this.qel;
+        let that = this;
+        qel.on('click', function (ev) {
+            if (ev.result === false) {
                 return false;
-            });
-        }
-        //输入框
-        else if (qel.is(':input')) {
-            let oldVal = qel.val();
-            qel.on('focus', function () {
-                oldVal = qel.val();
-            });
-            let event = qel.is('select') ? 'change' : 'blur';
-            qel.on(event, function (ev) {
-                if (ev.result === false) {
-                    return false;
-                }
-                let val = qel.val();
+            }
+            let url = qel.data('url') || qel.attr('href');
+            let method = qel.data('method') || 'get';
+            let info = Yee.parseUrl(url);
+            that.send(info.path, info.param, method);
+            return false;
+        });
+    }
+
+    initInput() {
+        let qel = this.qel;
+        let that = this;
+        let recover = qel.data('recover') === void 0 ? true : qel.data('recover');
+        let oldVal = qel.val();
+        qel.on('focus', function () {
+            oldVal = qel.val();
+        });
+        let event = qel.is('select') ? 'change' : 'blur';
+        qel.on(event, function (ev) {
+            if (ev.result === false) {
+                return false;
+            }
+            let val = qel.val();
+            if (recover) {
                 if (val == '') {
                     qel.val(oldVal);
                     return;
@@ -55,203 +72,138 @@ class YeeAjax {
                 if (val == oldVal) {
                     return;
                 }
-                let url = setting.url || '';
-                let method = setting.method || 'get';
-                let info = yee_1.Yee.parseUrl(url);
-                let boxName = qel.attr('name') || '';
-                if (boxName) {
-                    info.param[boxName] = val;
-                }
-                that.send(info.path, info.param, method);
-                return false;
-            });
-        }
-        //监听事件-------------
-        if (qel.attr('on-success')) {
-            let code = qel.attr('on-success');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('success', func);
-        }
-        if (qel.attr('on-fail')) {
-            let code = qel.attr('on-fail');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('fail', func);
-        }
-        if (qel.attr('on-back')) {
-            let code = qel.attr('on-back');
-            let func = new Function('ev', 'ret', code);
-            // @ts-ignore
-            qel.on('back', func);
-        }
-        if (qel.attr('on-before')) {
-            let code = qel.attr('on-before');
-            let func = new Function('ev', 'option', code);
-            // @ts-ignore
-            qel.on('before', func);
-        }
-    }
-    send(path, param, method) {
-        //防止误触双击
-        if (YeeAjax.clickTimeout) {
+            }
+            let url = qel.data('url');
+            let method = qel.data('method') || 'get';
+            let info = Yee.parseUrl(url);
+            let boxName = qel.attr('name') || '';
+            if (boxName) {
+                info.param[boxName] = val;
+            }
+            that.send(info.path, info.param, method);
             return false;
-        }
-        YeeAjax.clickTimeout = true;
-        setTimeout(function () {
-            YeeAjax.clickTimeout = false;
-        }, 1000);
-        let setting = this.setting;
+        });
+    }
+
+    /**
+     * 发送请求
+     * @param path
+     * @param param
+     * @param method
+     */
+    send(path, param, method) {
         let qel = this.qel;
         if (qel.is('.disabled') || qel.is(':disabled')) {
             return false;
         }
-        let data = {
+        let info = {
             path: path,
             param: param,
-            method: method,
-            cache: true
+            method: method
         };
-        if (setting['carry']) {
-            let along = $(setting['carry']);
-            if (along.length > 0) {
-                along.each(function (idx, el) {
-                    let qel = $(el);
-                    if (!qel.is(':input')) {
-                        return;
-                    }
-                    let name = qel.attr('name') || qel.attr('id') || '';
-                    if (name == '') {
-                        return;
-                    }
-                    let val = qel.val() || '';
-                    if (qel.is(':radio')) {
-                        let name2 = qel.attr('name');
-                        let form = qel.parents('form:first');
-                        let box = form.find(':radio[name="' + name2 + '"]:checked');
-                        val = box.val() || '';
-                    }
-                    if (qel.is(':checkbox')) {
-                        val = qel.is(':checked') ? qel.val() : '';
-                    }
-                    data.param[name] = val;
-                });
-            }
-        }
-        //提交之前的数据，可能修正
-        // @ts-ignore
-        if (qel.emit('before', data) === false) {
+        let carry = qel.data('carry') || '';
+        Yee.carryData(carry, info.param);
+        if (qel.emit('before', info) === false) {
             return false;
         }
-        //表单提交后返回的url
-        let backUrl = setting.backUrl || '';
-        let loadTimeout = setting.loadTimeout || 0; //提交遮罩超时时间
-        let layerIndex = null;
+        let backUrl = qel.data('back-url') || '';
+        let loadTimeout = qel.data('timeout') || 0;
+        let index = null;
         if (qel.is('form')) {
-            //如果是表单 存在 __BACK__ 的字段单作返回url
             if (backUrl == '' && qel.find(":input[name='__BACK__']").length > 0) {
                 backUrl = qel.find(":input[name='__BACK__']").val() || '';
             }
         }
-        //如果设置遮住时间
         if (loadTimeout > 0) {
-            layerIndex = yee_1.Yee.load(1, {
+            index = Yee.load(1, {
                 shade: [0.1, '#FFF'],
                 time: loadTimeout
             });
         }
-        //提交数据
-        $.ajax({
-            type: data.method,
-            url: data.path,
-            data: data.param,
-            cache: data.cache,
-            dataType: 'json',
-            success: function (ret) {
-                //关闭遮住层
-                if (layerIndex !== null) {
-                    yee_1.Yee.close(layerIndex);
-                    layerIndex = null;
-                }
-                if (!ret) {
-                    return;
-                }
-                // @ts-ignore
-                if (qel.emit('back', ret) === false) {
-                    return;
-                }
-                //失败处理----------
-                if (ret.status === false) {
-                    //如果是表单
-                    if (qel.is('form')) {
-                        // @ts-ignore
-                        if (ret.formError && typeof (qel.showError) == 'function') {
-                            // @ts-ignore
-                            qel.showError(ret.formError);
-                        }
-                        // @ts-ignore
-                        if (qel.emit('fail', ret) === false) {
-                            return;
-                        }
-                        if (!ret.formError && ret.msg && typeof (ret.msg) === 'string') {
-                            yee_1.Yee.alert(ret.msg, { icon: 7 }, function (idx) {
-                                yee_1.Yee.close(idx);
-                            });
-                        }
+        let goBack = function (back) {
+            if (back == null || back == '') {
+                return;
+            }
+            let a = $('<a style="display: none"><span></span></a>').attr('href', back).appendTo(document.body);
+            a.find('span').trigger('click');
+            a.remove();
+        };
+        Yee.fetch(info.path, info.param, info.method).then(function (ret) {
+            if (index !== null) {
+                Yee.close(index);
+                index = null;
+            }
+            if (!ret) {
+                return;
+            }
+            if (qel.emit('back', ret) === false) {
+                return;
+            }
+            //返回数据结果失败
+            if (ret.status === false) {
+                //如果是表单
+                if (qel.is('form')) {
+                    //console.log(ret.formError, typeof (qel.showError));
+                    if (ret.formError && typeof (qel.showError) == 'function') {
+                        qel.showError(ret.formError);
                     }
-                    else {
-                        // @ts-ignore
-                        if (qel.emit('fail', ret) === false) {
-                            return;
-                        }
-                        if (ret.msg && typeof (ret.msg) === 'string') {
-                            yee_1.Yee.msg(ret.msg, { icon: 0, time: 2000 });
-                        }
-                    }
-                }
-                //拉取数据成功--------
-                if (ret.status === true) {
-                    // @ts-ignore
-                    if (qel.emit('success', ret) === false) {
+                    if (qel.emit('fail', ret) === false) {
                         return;
                     }
-                    if (ret.msg && typeof (ret.msg) === 'string') {
-                        yee_1.Yee.msg(ret.msg, { icon: 1, time: 1000 });
+                    if (!ret.formError && ret.msg && typeof (ret.msg) === 'string') {
+                        Yee.alert(ret.msg, {icon: 7}, function (idx) {
+                            Yee.close(idx);
+                        });
+                        return;
                     }
-                    if (typeof (ret.back) === 'undefined' && backUrl != '') {
-                        ret.back = backUrl;
+                } else {
+                    if (qel.emit('fail', ret) === false) {
+                        return;
                     }
-                }
-                //有跳转的数据---
-                if (typeof (ret.back) !== 'undefined' && ret.back !== null) {
-                    let goFunc = function () {
-                        let a = $('<a style="display: none"><span></span></a>').attr('href', ret.back).appendTo(document.body);
-                        a.find('span').trigger('click');
-                        a.remove();
-                    };
-                    if (ret.status === true && ret.msg) {
-                        window.setTimeout(goFunc, 1000);
+                    if (!(ret.msg && typeof (ret.msg) === 'string')) {
+                        return;
                     }
-                    else if (ret.status === false && ret.msg) {
-                        window.setTimeout(goFunc, 2000);
-                    }
-                    else {
-                        goFunc();
+                    if (qel.data('alert') || ret.alert) {
+                        Yee.alert(ret.msg, {icon: 7}, function (idx) {
+                            Yee.close(idx);
+                        });
+                        return;
+                    } else {
+                        Yee.msg(ret.msg, {icon: 0, time: 2000});
                     }
                 }
-            },
-            error: function (xhr) {
-                if (layerIndex !== null) {
-                    yee_1.Yee.close(layerIndex);
-                    layerIndex = null;
-                }
-                yee_1.Yee.msg('数据提交超时!', { icon: 0, time: 2000 });
             }
+            //成功返回数据
+            if (ret.status === true) {
+                if (qel.emit('success', ret) === false) {
+                    return;
+                }
+                let back = ret.back || backUrl;
+                if (!(ret.msg && typeof (ret.msg) === 'string')) {
+                    return goBack(back);
+                }
+                if (qel.data('alert') || ret.alert) {
+                    Yee.alert(ret.msg, {icon: 1}, function (idx) {
+                        Yee.close(idx);
+                        goBack(back);
+                    });
+                    return;
+                }
+                Yee.msg(ret.msg, {icon: 1, time: 1000});
+                window.setTimeout(function () {
+                    goBack(back);
+                }, 1000);
+            }
+        }).catch(function (e) {
+            if (index !== null) {
+                Yee.close(index);
+                index = null;
+            }
+            Yee.msg('数据提交超时!', {icon: 0, time: 2000});
+            console.error(e);
         });
         return false;
     }
-    ;
 }
-YeeAjax.clickTimeout = null;
-exports.YeeAjax = YeeAjax;
-//# sourceMappingURL=yee-ajax.js.map
+
+export {YeeAjax}
