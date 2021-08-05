@@ -3,12 +3,6 @@ class YeeDelaySelect {
         this.qel = null;
         let qel = this.qel = $(elem);
         let that = this;
-        qel.on('change', function () {
-            let selected = qel.children(':selected');
-            if (selected.length > 0) {
-                qel.data('value', selected[0].value);
-            }
-        });
         let has = false;
         let value = qel.data('value') || null;
         qel.find('option').each(function (_, el) {
@@ -19,40 +13,56 @@ class YeeDelaySelect {
                 has = true;
             }
         });
-        if (!has && value !== null) {
-            let ot = new Option(value, value);
-            ot.selected = true;
-            qel[0].add(ot);
-        }
+        //不存在
+        qel.on('change', function () {
+            let selected = qel.children(':selected');
+            if (selected.length > 0) {
+                qel.data('value', selected[0].value);
+            }
+        });
         qel.on('update', function (ev, option, value) {
             that.update(option, value);
         });
         let source = qel.data('source') || '';
-        let method = qel.data('method') || 'get';
-        if (typeof (source) == 'string') {
-            if (source === '') {
-                that.update([]);
-                return;
-            }
-            let info = Yee.parseUrl(source);
-            Yee.fetch(info.path, info.param, method).then(function (ret) {
-                if (ret.status === true && ret.data) {
-                    that.update(ret.data);
-                } else {
-                    Yee.alert('无法加载远程数据！');
-                }
-            }).catch((e) => console.log(e));
-        } else if (Yee.isArray(source)) {
-            that.update(source);
-        }
+        that.update(source, value);
     }
 
-    initItem(items, value = null) {
+    initItem(items) {
         let qel = this.qel;
         let element = qel.get(0);
-        value = value === null ? qel.data('value') || '' : value;
+        let value = qel.data('value') || null;
+        let has = false;
+        element.length = 0;
+
+        let header = qel.data('header') || '';
+        //添加头部
+        if (header) {
+            if (typeof header == 'string') {
+                let opt = new Option(header, '');
+                if (value == '') {
+                    has = true;
+                    opt.selected = true;
+                }
+                element.add(opt);
+            } else if (typeof header == 'object' && header.text) {
+                let optVal = header.value || '';
+                let opt = new Option(header.text, header.value || '')
+                if (value == optVal) {
+                    has = true;
+                    opt.selected = true;
+                }
+                element.add(opt);
+            } else if (Yee.isArray(header) && header.length >= 2) {
+                let opt = new Option(header[1], header[0]);
+                if (value == header[0]) {
+                    has = true;
+                    opt.selected = true;
+                }
+                element.add(opt);
+            }
+        }
+
         if (items !== null && Yee.isArray(items)) {
-            let has = false;
             for (let item of items) {
                 let opt = {};
                 if (typeof (item) === 'number' || typeof (item) === 'string') {
@@ -91,10 +101,8 @@ class YeeDelaySelect {
                     has = true;
                 }
             }
-            if (!has) {
-                qel.data('value', '');
-            }
         }
+        return has;
     }
 
     update(items, value = null) {
@@ -104,33 +112,23 @@ class YeeDelaySelect {
         if (typeof items == 'string') {
             let source = items;
             if (source === '') {
-                that.update([]);
+                that.update([], value);
                 return;
             }
             let info = Yee.parseUrl(source);
             Yee.fetch(info.path, info.param, method).then(function (ret) {
                 if (ret.status === true && ret.data) {
-                    that.update(ret.data);
+                    that.update(ret.data, value);
                 } else {
                     Yee.alert('无法加载远程数据！');
                 }
             }).catch((e) => console.log(e));
             return;
         }
-        let element = qel.get(0);
-        element.length = 0;
-        let header = qel.data('header') || '';
-        //添加头部
-        if (header) {
-            if (typeof header == 'string') {
-                element.add(new Option(header, ''));
-            } else if (typeof header == 'object' && header.text) {
-                element.add(new Option(header.text, header.value || ''));
-            } else if (Yee.isArray(header) && header.length >= 2) {
-                element.add(new Option(header[1], header[0]));
-            }
-        }
         this.initItem(items, value);
+        if (value !== null) {
+            qel.data('value', value);
+        }
     }
 }
 
