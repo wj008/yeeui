@@ -19,7 +19,7 @@ class YeeSelectDialog {
             let text = qel.data('text') || '';
             let itemData = {value: value, text: text};
             if (mode != 2) {
-                if (/^\{/.test(value) && /^\}$/.test(value)) {
+                if (/^\{/.test(value) && /\}$/.test(value)) {
                     try {
                         let temp = JSON.parse(value);
                         if (temp['value'] !== void 0 && temp['text'] !== void 0) {

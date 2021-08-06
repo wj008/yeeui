@@ -5,10 +5,11 @@ class YeeMultipleDialog {
         let textBox = $('<div></div>').appendTo(frag);
         let mode = parseInt(qel.data('mode') || 1);
         let itemsData = qel.data('items') || null;
+        //数组模式
         if (mode != 2 && itemsData === null) {
             let value = qel.val() || '';
             value = value.toString();
-            if (/^\[/.test(value) && /^\]$/.test(value)) {
+            if (/^\[/.test(value) && /\]$/.test(value)) {
                 try {
                     let temp = JSON.parse(value);
                     let temp2 = [];
