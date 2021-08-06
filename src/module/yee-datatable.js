@@ -414,7 +414,7 @@ class YeeDatatable {
                 cssSheet.setWidth(i, data[i]);
             }
         }
-        console.log(data);
+       // console.log(data);
     }
 
     /**

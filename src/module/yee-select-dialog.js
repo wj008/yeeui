@@ -16,7 +16,7 @@ class YeeSelectDialog {
             if (mode != 2 && value == '[]') {
                 value = '';
             }
-            let text = qel.data('text') || value;
+            let text = qel.data('text') || '';
             let itemData = {value: value, text: text};
             if (mode != 2) {
                 if (/^\{/.test(value) && /^\}$/.test(value)) {
