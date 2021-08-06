@@ -7,9 +7,6 @@ class YeeSelectDialog {
             textBox.attr('class', qel.attr('class'));
             textBox.attr('style', qel.attr('style'));
             textBox.attr('placeholder', qel.attr('placeholder'));
-            if (qel.is(':disabled')) {
-                textBox.prop('disabled', true);
-            }
             let mode = parseInt(qel.data('mode') || 1);
             let value = qel.val() || '';
             value = value.toString();
@@ -31,29 +28,38 @@ class YeeSelectDialog {
             }
             let span = $('<span></span>').insertAfter(textBox);
             let button = $('<a class="form-btn" href="javascript:;" yee-module="dialog" style="margin-left: 5px">选择</a>').appendTo(span);
-            if (qel.is(':disabled')) {
-                button.addClass('disabled');
-            }
-            let btnText = qel.data('btn-text');
-            if (btnText) {
-                button.text(btnText);
-            }
-            button.data('carry', '#' + qel.attr('id'));
-            let width = qel.data('width') || 0;
-            if (width) {
-                button.data('width', width);
-            }
-            let height = qel.data('height') || 0;
-            if (height) {
-                button.data('height', height);
-            }
+
             textBox.on('click', function () {
                 button.trigger('click');
             });
-            let url = qel.data('url') || '';
-            button.data('url', url);
             button.data('assign', itemData);
             textBox.val(itemData.text);
+            let update = function () {
+                if (qel.is(':disabled')) {
+                    button.addClass('disabled');
+                    textBox.prop('disabled', true);
+                } else {
+                    button.removeClass('disabled');
+                    textBox.prop('disabled', false);
+                }
+                let url = qel.data('url') || '';
+                button.data('url', url);
+                let btnText = qel.data('btn-text');
+                if (btnText) {
+                    button.text(btnText);
+                }
+                button.data('carry', '#' + qel.attr('id'));
+                let width = qel.data('width') || 0;
+                if (width) {
+                    button.data('width', width);
+                }
+                let height = qel.data('height') || 0;
+                if (height) {
+                    button.data('height', height);
+                }
+            }
+            update();
+            qel.on('update', update);
             let updateValue = function (data) {
                 textBox.val(data.text || '');
                 if ((data.value === '' || data.value === null) && (data.text === null || data.text === '')) {
