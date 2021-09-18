@@ -93,6 +93,7 @@ class YeeSelectDialog {
                 clearBtn.on('click', function () {
                     qel.val('');
                     textBox.val('');
+                    qel.emit('clear');
                 });
             }
             $(frag).insertAfter(qel);
