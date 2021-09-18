@@ -281,6 +281,7 @@ class YeeBase {
      * @param method
      */
     static fetch(path, param, method = 'get') {
+        //console.log('fetch:',path,param,method);
         return new Promise(function (resolve, reject) {
             method = method.toUpperCase();
             let query = [];

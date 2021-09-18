@@ -67,6 +67,7 @@ class Loader {
         }
         try {
             script.src = url;
+            //console.log('script:',url);
             let head = document.getElementsByTagName('head');
             if (head.length > 0) {
                 head[0].appendChild(script);
@@ -85,6 +86,10 @@ class Loader {
      * @returns {Promise<unknown>|*}
      */
     static load(path, baseUrl) {
+        if(path==null||path==''){
+            return Promise.resolve({url: '', status: false})
+        }
+        //console.log('load:',path,baseUrl);
         if (Loader.loadedFiles[path]) {
             return Loader.loadedFiles[path];
         }

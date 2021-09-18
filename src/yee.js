@@ -209,6 +209,9 @@ class Yee extends YeeBase {
                         });
                         return;
                     }
+                    loaded++;
+                    next(idx + 1);
+                    return;
                 }
                 //有配置
                 Loader.load(file, Yee.baseUrl).then(function (ret) {
