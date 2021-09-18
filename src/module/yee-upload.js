@@ -18,11 +18,7 @@ class YeeUpload {
             field.attr('accept', accept);
         }
         field.on('change', function () {
-            that.upload().then(function () {
-                setTimeout(function () {
-                    form.trigger('reset');
-                }, 100);
-            });
+            that.upload();
             return false;
         });
         //文件上传
@@ -494,6 +490,7 @@ class YeeUpload {
         let multiple = qel.data('multiple') || false;
         let fieldName = qel.data('field-name') || 'filedata';
         let url = qel.data('url') || '';
+
         //检查文件类型
         if (allowExtensions != '') {
             for (let i = 0; i < files.length; i++) {

@@ -157,7 +157,7 @@ class YeeLinkage {
         let defVal = this.values[index] || '';
         if (items !== null) {
             for (let item of items) {
-                let data = {value: null, text: null, childs: null};
+                let data = {value: null, text: null, items: null};
                 if (typeof item == 'number' || typeof item == 'string') {
                     data.value = item;
                     data.text = item;
@@ -180,12 +180,16 @@ class YeeLinkage {
                     } else {
                         data.text = data.value;
                     }
-                    if (item['childs'] !== void 0) {
-                        data.childs = item.childs;
-                    } else if (item['c'] !== void 0) {
-                        data.childs = item.c;
+                    if (item['items'] !== void 0) {
+                        data.items = item.items;
+                    }
+                    else if (item['childs'] !== void 0) {
+                        data.items = item.childs;
+                    }
+                    else if (item['c'] !== void 0) {
+                        data.items = item.c;
                     } else if (item[2] !== void 0) {
-                        data.childs = item[2];
+                        data.items = item[2];
                     }
                 }
                 if (box[0].length == 1 && (data.value === null || data.value === '')) {
@@ -197,7 +201,7 @@ class YeeLinkage {
                 if (defVal == data.value) {
                     option.selected = true;
                 }
-                option['_childData'] = data.childs;
+                option['_childData'] = data.items;
             }
         }
         let selected = box.children(':selected');
