@@ -41,6 +41,7 @@ class YeeTransfer {
         });
         if (this.qel.data('search')) {
             let searchBox = transfer.find('div.trans-search');
+            searchBox.show();
             let searchInp = searchBox.find('input.trans-search-inp');
             let searchBtn = searchBox.find('a.trans-search-btn');
             let placeholder = this.qel.attr('placeholder') || '请输入关键字搜索';
