@@ -151,14 +151,19 @@ class YeeTransfer {
             if (typeof item == 'string' || typeof item == 'number') {
                 text = item + '';
             } else if (typeof item == 'object') {
-                if (item['text'] !== void 0) {
-                    text = item['text'];
-                } else if (item['name'] !== void 0) {
-                    text = item['name'];
-                } else if (item['title'] !== void 0) {
-                    text = item['title'];
+                if (item['@text'] !== void 0) {
+                    text = item['@text'];
+                    delete item['@text'];
                 } else {
-                    text = JSON.stringify(item);
+                    if (item['text'] !== void 0) {
+                        text = item['text'];
+                    } else if (item['name'] !== void 0) {
+                        text = item['name'];
+                    } else if (item['title'] !== void 0) {
+                        text = item['title'];
+                    } else {
+                        text = JSON.stringify(item);
+                    }
                 }
             }
             let disabled = this.qel.prop('disabled') || false;
@@ -250,6 +255,7 @@ class YeeTransfer {
             if (hasFunc(value)) {
                 item.addClass('selected');
             } else {
+                item.find(':input').prop('checked', false);
                 item.removeClass('selected');
             }
         });
