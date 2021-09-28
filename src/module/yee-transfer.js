@@ -187,6 +187,8 @@ class YeeTransfer {
             pageBar.empty();
             this.initPageBar(pageBar, url, source.pageInfo);
             this.transfer.find('div.trans-left').addClass('has-bar');
+        } else {
+            this.transfer.find('div.trans-left .trans-count').text(source.list.length || '');
         }
         this.updateState();
         this.transfer.find('div.trans-left .trans-head :checkbox').prop('checked', false);
@@ -241,9 +243,11 @@ class YeeTransfer {
         let itemsR = this.transfer.find('div.trans-right ul.trans-list li.trans-item');
         let itemsL = this.transfer.find('div.trans-left ul.trans-list li.trans-item');
         let hasFunc = function (value) {
+            let v1 = value['value'] === void 0 ? (value['id'] === void 0 ? JSON.stringify(value) : value['id']) : value['value'];
             for (let item of itemsR) {
                 let value2 = $(item).find(':input').data('item-data');
-                if (JSON.stringify(value) == JSON.stringify(value2)) {
+                let v2 = value2['value'] === void 0 ? (value2['id'] === void 0 ? JSON.stringify(value2) : value2['id']) : value2['value'];
+                if (v1 == v2) {
                     return true;
                 }
             }
