@@ -21,14 +21,11 @@ class YeeTransfer {
         </div>
     </div>
 </div>`).insertAfter(qel);
-
-
         let pageBar = transfer.find('div.trans-left div.trans-pagebar');
         pageBar.on('click', 'a', function () {
             let url = $(this).data('url');
             that.load(url);
         });
-
         transfer.find('div.trans-middle a.trans-inc-btn').on('click', function () {
             that.insert();
         });
@@ -42,7 +39,6 @@ class YeeTransfer {
         transfer.find('div.trans-right .trans-head :checkbox').on('click', function () {
             transfer.find('div.trans-right ul.trans-list :checkbox').not(':disabled').prop('checked', $(this).prop('checked'));
         });
-
         if (this.qel.data('search')) {
             let searchBox = transfer.find('div.trans-search');
             let searchInp = searchBox.find('input.trans-search-inp');
@@ -62,7 +58,6 @@ class YeeTransfer {
                 that.load(source);
             });
         }
-
         let caption = qel.data('caption') || '';
         if (caption != '') {
             transfer.find('div.trans-left .trans-caption').text(caption);
@@ -170,7 +165,7 @@ class YeeTransfer {
             if (item['@disabled']) {
                 disabled = true;
             }
-            console.log('render', item);
+            delete item['@disabled'];
             let itemUI = $('<li class="trans-item"><label><span class="trans-box"><input type="checkbox"/></span><span class="trans-text"></span></label></li>');
             let itemBox = itemUI.find(':input');
             itemBox.data('item-data', item);
@@ -224,6 +219,7 @@ class YeeTransfer {
             if (item['@disabled']) {
                 disabled = true;
             }
+            delete item['@disabled'];
             let itemUI = $('<li class="trans-item"><label><span class="trans-box"><input type="checkbox"/></span><span class="trans-text"></span></label></li>');
             let itemBox = itemUI.find(':input');
             itemBox.data('item-data', item);
