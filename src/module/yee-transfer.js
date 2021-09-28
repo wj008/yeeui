@@ -4,15 +4,16 @@ class YeeTransfer {
         let that = this;
         qel.hide();
         let transfer = this.transfer = $(`<div class="yee-transfer">
-    <div class="trans-search">
+    <div class="trans-search" style="display: none">
         <input type="text"  class="form-inp text trans-search-inp"/><a class="form-btn trans-search-btn" href="javascript:;">搜索</a>
     </div>
     <div class="trans-main">
         <div class="trans-left">
             <div class="trans-head"><input type="checkbox"/><span class="trans-caption">备选列表</span><span class="trans-count">0</span></div>
             <div class="trans-warp"><ul class="trans-list"></ul></div>
-            <div class="trans-foot"><div class="trans-pagebar"></div></div>
+            <div class="trans-foot" style="display: none"><div class="trans-pagebar"></div></div>
         </div>
+        
         <div class="trans-middle"><div class="trans-btn-warp"><a class="trans-inc-btn"></a><a class="trans-dec-btn"></a></div></div>
         <div class="trans-right">
             <div class="trans-head"><input type="checkbox"/><span class="trans-caption">已选列表</span><span class="trans-count">0</span></div>
@@ -20,11 +21,14 @@ class YeeTransfer {
         </div>
     </div>
 </div>`).insertAfter(qel);
+
+
         let pageBar = transfer.find('div.trans-left div.trans-pagebar');
         pageBar.on('click', 'a', function () {
             let url = $(this).data('url');
             that.load(url);
         });
+
         transfer.find('div.trans-middle a.trans-inc-btn').on('click', function () {
             that.insert();
         });
@@ -33,27 +37,32 @@ class YeeTransfer {
         });
         //全选
         transfer.find('div.trans-left .trans-head :checkbox').on('click', function () {
-            transfer.find('div.trans-left ul.trans-list :checkbox').prop('checked', $(this).prop('checked'));
+            transfer.find('div.trans-left ul.trans-list :checkbox').not(':disabled').prop('checked', $(this).prop('checked'));
         });
         transfer.find('div.trans-right .trans-head :checkbox').on('click', function () {
-            transfer.find('div.trans-right ul.trans-list :checkbox').prop('checked', $(this).prop('checked'));
+            transfer.find('div.trans-right ul.trans-list :checkbox').not(':disabled').prop('checked', $(this).prop('checked'));
         });
-        let searchInp = transfer.find('div.trans-search input.trans-search-inp');
-        let searchBtn = transfer.find('div.trans-search a.trans-search-btn');
-        let placeholder = this.qel.attr('placeholder') || '请输入关键字搜索';
-        searchInp.attr('placeholder', placeholder);
-        searchBtn.on('click', function () {
-            let keyword = searchInp.val() || '';
-            let source = qel.data('source') || '';
-            let temp = Yee.parseUrl(source);
-            if (keyword == '') {
-                temp.param['keyword'] = '';
-            } else {
-                temp.param['keyword'] = keyword;
-            }
-            source = Yee.toUrl(temp);
-            that.load(source);
-        });
+
+        if (this.qel.data('search')) {
+            let searchBox = transfer.find('div.trans-search');
+            let searchInp = searchBox.find('input.trans-search-inp');
+            let searchBtn = searchBox.find('a.trans-search-btn');
+            let placeholder = this.qel.attr('placeholder') || '请输入关键字搜索';
+            searchInp.attr('placeholder', placeholder);
+            searchBtn.on('click', function () {
+                let keyword = searchInp.val() || '';
+                let source = qel.data('source') || '';
+                let temp = Yee.parseUrl(source);
+                if (keyword == '') {
+                    temp.param['keyword'] = '';
+                } else {
+                    temp.param['keyword'] = keyword;
+                }
+                source = Yee.toUrl(temp);
+                that.load(source);
+            });
+        }
+
         let caption = qel.data('caption') || '';
         if (caption != '') {
             transfer.find('div.trans-left .trans-caption').text(caption);
@@ -157,15 +166,28 @@ class YeeTransfer {
                     text = JSON.stringify(item);
                 }
             }
+            let disabled = this.qel.prop('disabled') || false;
+            if (item['@disabled']) {
+                disabled = true;
+            }
+            console.log('render', item);
             let itemUI = $('<li class="trans-item"><label><span class="trans-box"><input type="checkbox"/></span><span class="trans-text"></span></label></li>');
-            itemUI.find(':input').data('item-data', item);
+            let itemBox = itemUI.find(':input');
+            itemBox.data('item-data', item);
+            if (disabled) {
+                itemBox.prop('disabled', true);
+                itemUI.addClass('disabled');
+            }
             itemUI.find('span.trans-text').text(text);
             itemUI.appendTo(layout);
         }
-        this.transfer.find('div.trans-left .trans-count').text(source.pageInfo.recordsCount || '');
-        let pageBar = this.transfer.find('div.trans-left div.trans-pagebar');
-        pageBar.empty();
-        this.initPageBar(pageBar, url, source.pageInfo);
+        if (source.pageInfo) {
+            this.transfer.find('div.trans-left .trans-count').text(source.pageInfo.recordsCount || '');
+            let pageBar = this.transfer.find('div.trans-left div.trans-pagebar');
+            pageBar.empty();
+            this.initPageBar(pageBar, url, source.pageInfo);
+            this.transfer.find('div.trans-left').addClass('has-bar');
+        }
         this.updateState();
         this.transfer.find('div.trans-left .trans-head :checkbox').prop('checked', false);
     }
@@ -198,8 +220,17 @@ class YeeTransfer {
                     text = JSON.stringify(item);
                 }
             }
+            let disabled = this.qel.prop('disabled') || false;
+            if (item['@disabled']) {
+                disabled = true;
+            }
             let itemUI = $('<li class="trans-item"><label><span class="trans-box"><input type="checkbox"/></span><span class="trans-text"></span></label></li>');
-            itemUI.find(':input').data('item-data', item);
+            let itemBox = itemUI.find(':input');
+            itemBox.data('item-data', item);
+            if (disabled) {
+                itemBox.prop('disabled', true);
+                itemUI.addClass('disabled');
+            }
             itemUI.find('span.trans-text').text(text);
             itemUI.appendTo(layout);
         }
