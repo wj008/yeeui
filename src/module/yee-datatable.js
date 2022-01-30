@@ -7,8 +7,7 @@ $.fn.extend({
     wrapEx: function (html) {
         this.wrap(html);
         return this.parent();
-    },
-    cloneEx: function () {
+    }, cloneEx: function () {
         let elem = this.get(0);
         if (elem) {
             let cp = elem.__clone = this.clone();
@@ -77,8 +76,7 @@ class YeeDatatable {
         }
         let args = Yee.parseUrl(this.baseUrl);
         this.lastSend = {
-            url: args.path,
-            data: args.param
+            url: args.path, data: args.param
         };
         this.tbName = table.data('tbname') || table.attr('name') || (window.location.pathname + '') + '/dt-' + this.id;
         table.attr('name', this.tbName);
@@ -142,14 +140,11 @@ class YeeDatatable {
         })();
         //列设置
         this.cssSheet = {
-            srcCells: [],
-            items: {},
-            setWidth: function (idx, width) {
+            srcCells: [], items: {}, setWidth: function (idx, width) {
                 this.items[idx] = width;
                 let rule = '.' + tbRule + '-c' + idx;
                 that.addCssRule(rule, 'width:' + width + 'px');
-            },
-            getWidth: function (idx) {
+            }, getWidth: function (idx) {
                 if (this.items[idx] !== void 0) {
                     return this.items[idx];
                 }
@@ -414,7 +409,7 @@ class YeeDatatable {
                 cssSheet.setWidth(i, data[i]);
             }
         }
-       // console.log(data);
+        // console.log(data);
     }
 
     /**
@@ -949,8 +944,7 @@ class YeeDatatable {
             args.param[key] = param[key];
         }
         this.lastSend = {
-            url: args.path,
-            data: args.param
+            url: args.path, data: args.param
         };
         if (rewrite) {
             let temp1 = Yee.parseUrl(window.location.href);

@@ -300,8 +300,7 @@ class YeeBase {
             }
             if (window.fetch) {
                 let option = {
-                    method: method,
-                    headers: {
+                    method: method, headers: {
                         'x-requested-with': 'fetch'
                     },
                 };
@@ -327,16 +326,9 @@ class YeeBase {
                 return;
             }
             $.ajax({
-                type: method,
-                url: path,
-                data: useForm ? param : query.join('&'),
-                dataType: 'json',
-                contentType: false,
-                processData: false,
-                success: function (ret) {
+                type: method, url: path, data: useForm ? param : query.join('&'), dataType: 'json', contentType: false, processData: false, success: function (ret) {
                     resolve(ret);
-                },
-                error: function (xhr) {
+                }, error: function (xhr) {
                     reject('数据提交超时');
                 }
             });
@@ -468,18 +460,11 @@ class YeeBase {
             let t = options.expires = new Date();
             t.setMilliseconds(t.getMilliseconds() + days * 864e+5);
         }
-        return (document.cookie = [
-            encodeURIComponent(key), '=', encodeURIComponent(String(value)),
-            options.expires ? '; expires=' + options.expires.toUTCString() : '',
-            options.path ? '; path=' + options.path : '',
-            options.domain ? '; domain=' + options.domain : '',
-            options.secure ? '; secure' : ''
-        ].join(''));
+        return (document.cookie = [encodeURIComponent(key), '=', encodeURIComponent(String(value)), options.expires ? '; expires=' + options.expires.toUTCString() : '', options.path ? '; path=' + options.path : '', options.domain ? '; domain=' + options.domain : '', options.secure ? '; secure' : ''].join(''));
     }
 
     static getCookie(key) {
-        let result = key ? undefined : {}, cookies = document.cookie ? document.cookie.split('; ') : [], i = 0,
-            l = cookies.length;
+        let result = key ? undefined : {}, cookies = document.cookie ? document.cookie.split('; ') : [], i = 0, l = cookies.length;
         for (; i < l; i++) {
             let parts = cookies[i].split('='), name = decodeURIComponent(parts.shift()), cookie = parts.join('=');
             if (key === name) {
@@ -516,6 +501,42 @@ class YeeBase {
             return window.localStorage.removeItem(key);
         }
         return YeeBase.delCoolie(key);
+    }
+
+    static getStorageEx(prefix, name) {
+        let data = YeeBase.getStorage(prefix);
+        if (data === null || data === '') {
+            data = {};
+        } else {
+            data = JSON.parse(data);
+        }
+        if (data[name] === void 0) {
+            return null;
+        }
+        return data[name];
+    }
+
+    static setStorageEx(prefix, name, value) {
+        let data = YeeBase.getStorage(prefix);
+        if (data === null || data === '') {
+            data = {};
+        } else {
+            data = JSON.parse(data);
+        }
+        data[name] = value;
+        YeeBase.setStorage(prefix, JSON.stringify(data));
+    }
+
+    static deleteStorageEx(prefix, name) {
+        let data = YeeBase.getStorage(prefix);
+        if (data === null || data === '') {
+            data = {};
+        } else {
+            data = JSON.parse(data);
+        }
+        data[name] = null;
+        delete data[name];
+        YeeBase.setStorage(prefix, JSON.stringify(data));
     }
 
     static dynamic(type, names) {

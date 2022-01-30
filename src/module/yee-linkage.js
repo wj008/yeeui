@@ -15,16 +15,10 @@ class YeeLinkage {
         qel.hide();
         this.qelName = qel.attr('name') || null;
         let strVal = String(qel.val() || '');
-        let values = /^\[.*\]$/.test(strVal) ? JSON.parse(strVal) : null;
-        if (values !== null) {
-            for (let i in values) {
-                values[i] = values[i] == 0 ? "" : values[i];
-            }
-        }
-        this.values = values == null ? [] : values;
+        this.setValue(strVal);
         let source = qel.data('source') || '';
         that.pending = true;
-        this.createBox(0, source).then(function () {
+        this.createBox(0, source, true).then(function () {
             that.pending = false;
             that.values = [];
         });
@@ -48,11 +42,22 @@ class YeeLinkage {
         }
     }
 
+    setValue(strVal) {
+        let values = /^\[.*\]$/.test(strVal) ? JSON.parse(strVal) : null;
+        if (values !== null) {
+            for (let i in values) {
+                values[i] = values[i] == 0 ? "" : values[i];
+            }
+        }
+        this.values = values == null ? [] : values;
+    }
+
     update(source = null) {
+        let qel = this.qel;
+        source = source || qel.data('source');
+        qel.data('source', source);
         let deferred = $.Deferred();
         let that = this;
-        //console.log('update');
-        //如果正在渲染
         if (this.pending) {
             setTimeout(function () {
                 that.update(source).then(function () {
@@ -62,17 +67,9 @@ class YeeLinkage {
             return deferred;
         }
         that.pending = true;
-        let qel = this.qel;
         let strVal = String(qel.val() || '');
-        let values = /^\[.*\]$/.test(strVal) ? JSON.parse(strVal) : null;
-        if (values !== null) {
-            for (let i in values) {
-                values[i] = values[i] == 0 ? "" : values[i];
-            }
-        }
-        this.values = values;
-        source = source || qel.data('source');
-        this.createBox(0, source).then(function () {
+        this.setValue(strVal);
+        this.createBox(0, source, true).then(function () {
             //console.log('gengx渲染全部完成');
             deferred.resolve();
             that.pending = false;
@@ -136,11 +133,13 @@ class YeeLinkage {
         box.show();
     }
 
-    resetBox(box, index, items = null) {
+    resetBox(box, index, items = null, force) {
         let deferred = $.Deferred();
         let level = index + 1;
-        if (this.level !== 0 && level > this.level) {
-            return deferred.resolve();
+        if (!force) {
+            if (this.level !== 0 && level > this.level) {
+                return deferred.resolve();
+            }
         }
         let that = this;
         //清空选项
@@ -154,7 +153,10 @@ class YeeLinkage {
                 box[0].add(new Option(header, ''));
             }
         }
-        let defVal = this.values[index] || '';
+        let defVal = '';
+        if (this.values != null) {
+            defVal = this.values[index] || '';
+        }
         if (items !== null) {
             for (let item of items) {
                 let data = {value: null, text: null, items: null};
@@ -182,11 +184,9 @@ class YeeLinkage {
                     }
                     if (item['items'] !== void 0) {
                         data.items = item.items;
-                    }
-                    else if (item['childs'] !== void 0) {
+                    } else if (item['childs'] !== void 0) {
                         data.items = item.childs;
-                    }
-                    else if (item['c'] !== void 0) {
+                    } else if (item['c'] !== void 0) {
                         data.items = item.c;
                     } else if (item[2] !== void 0) {
                         data.items = item[2];
@@ -215,10 +215,12 @@ class YeeLinkage {
         return deferred;
     }
 
-    createBox(index = 0, items = null) {
+    createBox(index = 0, items = null, force) {
         let deferred = $.Deferred();
-        if (this.level !== 0 && index + 1 > this.level) {
-            return deferred.resolve();
+        if (!force) {
+            if (this.level !== 0 && index + 1 > this.level) {
+                return deferred.resolve();
+            }
         }
         let that = this;
         let inputs = this.inputs;
@@ -226,19 +228,19 @@ class YeeLinkage {
         let method = qel.data('method') || 'get';
         if (typeof items === 'string') {
             if (items == '') {
-                that.createBox(index, null).then(function () {
+                that.createBox(index, null, force).then(function () {
                     deferred.resolve();
                 });
                 return deferred;
             }
             if (YeeLinkage.cacheItemMap[items]) {
-                return that.createBox(index, YeeLinkage.cacheItemMap[items]);
+                return that.createBox(index, YeeLinkage.cacheItemMap[items], force);
             }
             let info = Yee.parseUrl(items);
             Yee.fetch(info.path, info.param, method).then(function (ret) {
                 if (ret.status === true && ret.data) {
                     YeeLinkage.cacheItemMap[items] = ret.data;
-                    that.createBox(index, YeeLinkage.cacheItemMap[items]).then(function () {
+                    that.createBox(index, YeeLinkage.cacheItemMap[items], force).then(function () {
                         deferred.resolve();
                     });
                 } else {
@@ -249,6 +251,7 @@ class YeeLinkage {
             });
             return deferred;
         }
+
         let clear = function () {
             while (that.inputs.length > 0 && that.inputs.length > index) {
                 that.inputs.pop().remove();
@@ -262,7 +265,7 @@ class YeeLinkage {
         let box = that.inputs[index] || null;
         if (this.level == 0 || box == null) {
             clear();
-            if (this.level == 0) {
+            if (!force && this.level == 0) {
                 if (items == null || items.length == 0) {
                     return deferred.resolve();
                 }
@@ -284,12 +287,13 @@ class YeeLinkage {
                 });
             });
         }
-        that.resetBox(box, index, items).then(function () {
+        that.resetBox(box, index, items, force).then(function () {
             deferred.resolve();
         });
         return deferred;
     }
 }
+
 YeeLinkage.cacheItemMap = {};
 
 export {YeeLinkage}
