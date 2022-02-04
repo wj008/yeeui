@@ -8,13 +8,7 @@ class YeePagebar {
         this.bindElem = null;
         let qel = this.qel = $(elem);
         this.setting = $.extend({
-            pageSize: 0,
-            hidden: 0,
-            goPage: 1,
-            numPage: 1,
-            firstPage: 1,
-            lastPage: 1,
-            info: null
+            pageSize: 0, hidden: 0, goPage: 1, numPage: 1, firstPage: 1, lastPage: 1, info: null
         }, qel.data());
         this.init();
     }
@@ -82,11 +76,7 @@ class YeePagebar {
         Yee.use('vue').then(function () {
             qel.find('[yee-template]').each(function (_, el) {
                 that.templates.push(new YeeTemplate(el, {
-                    barCode: '',
-                    recordsCount: 0,
-                    page: 0,
-                    pageCount: 0,
-                    pageSize: 0,
+                    barCode: '', recordsCount: 0, page: 0, pageCount: 0, pageSize: 0,
                 }));
             });
             //按钮点击事件
@@ -104,7 +94,7 @@ class YeePagebar {
                     that.bindElem.emit('load', url, true);
                 }
                 // @ts-ignore
-                qel.emit('page');
+                qel.emit('page', url);
             });
             qel.on('source', function (ev, source) {
                 that.render(source);
