@@ -23,6 +23,9 @@ class YeeDelaySelect {
         qel.on('update', function (ev, option, value) {
             that.update(option, value);
         });
+        qel.on('source', function (ev, option, value) {
+            that.update(option, value);
+        });
         let source = qel.data('source') || '';
         that.update(source, value);
     }

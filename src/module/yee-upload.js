@@ -94,8 +94,14 @@ class YeeUpload {
             } else {
                 button = $('<a  href="javascript:;" class="yee-btn">选择文件</a>');
                 button.insertAfter(qel);
+                if (qel.is(':disabled')) {
+                    button.prop('disabled', true);
+                }
             }
             button.on('click', function () {
+                if (qel.is(':disabled')) {
+                    return false;
+                }
                 field.trigger('click');
                 // @ts-ignore
                 if (typeof (qel.setDefault) == 'function') {
@@ -167,9 +173,7 @@ class YeeUpload {
             let value = qel.val() || '';
             if (value != '') {
                 let data = {
-                    url: qel.val(),
-                    btnWidth: btnWidth,
-                    btnHeight: btnHeight
+                    url: qel.val(), btnWidth: btnWidth, btnHeight: btnHeight
                 };
                 qel.emit('createImage', data);
                 YeeUpload.createImage(data.url, data.btnWidth, data.btnHeight).then(function (img) {
@@ -264,9 +268,7 @@ class YeeUpload {
                 item.addClass('disabled');
             }
             let data = {
-                url: url,
-                btnWidth: btnWidth,
-                btnHeight: btnHeight
+                url: url, btnWidth: btnWidth, btnHeight: btnHeight
             };
             qel.emit('createImage', data);
             YeeUpload.createImage(data.url, data.btnWidth, data.btnHeight).then(function (img) {

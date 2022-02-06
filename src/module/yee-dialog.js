@@ -42,14 +42,8 @@ class YeeDialog {
         let windowHeight = 0;
         let timer = null;
         let layIndex = layer.open({
-            type: 2,
-            title: setting.title || '网页对话框',
-            // @ts-ignore
-            anim: setting.anim,
-            area: [setting.width + 'px', setting.height + 'px'],
-            maxmin: setting.maxmin === void 0 ? true : setting.maxmin,
-            content: url,
-            //关闭触发消息
+            type: 2, title: setting.title || '网页对话框', // @ts-ignore
+            anim: setting.anim, area: [setting.width + 'px', setting.height + 'px'], maxmin: setting.maxmin === void 0 ? true : setting.maxmin, content: url, //关闭触发消息
             end: function () {
                 let data = null;
                 if (timer) {
@@ -59,7 +53,9 @@ class YeeDialog {
                 if (dialogWindow && dialogWindow.returnValue !== void 0) {
                     data = dialogWindow.returnValue;
                 }
-                if (elem) {
+                if (typeof elem == 'function') {
+                    elem.call(null, 'closeDialog', data);
+                } else if (elem) {
                     // @ts-ignore
                     elem.emit('closeDialog', data);
                 }
@@ -67,20 +63,16 @@ class YeeDialog {
                     iframe.remove();
                     iframe = null;
                 }
-            },
-            full: function () {
+            }, full: function () {
                 state = 'full';
                 if (iframe) {
                     iframe.css('height', '100%');
                 }
-            },
-            min: function () {
+            }, min: function () {
                 state = 'min';
-            },
-            restore: function () {
+            }, restore: function () {
                 state = 'restore';
-            },
-            success: function (layero, index) {
+            }, success: function (layero, index) {
                 dialogWindow = null;
                 iframe = layero.find('iframe');
                 if (iframe.length > 0) {
@@ -123,39 +115,35 @@ class YeeDialog {
                     }
                     let handle = {
                         emit(event, ...data) {
-                            if (elem) {
+                            if (typeof elem == 'function') {
+                                elem.call(null, event, ...data);
+                            } else if (elem) {
                                 // @ts-ignore
                                 elem.emit(event, ...data);
                             }
-                        },
-                        success(...data) {
-                            if (elem) {
+                        }, success(...data) {
+                            if (typeof elem == 'function') {
+                                elem.call(null, 'success', ...data);
+                            } else if (elem) {
                                 // @ts-ignore
                                 elem.emit('success', ...data);
                             }
-                        },
-                        fail(...data) {
-                            if (elem) {
+                        }, fail(...data) {
+                            if (typeof elem == 'function') {
+                                elem.call(null, 'fail', ...data);
+                            } else if (elem) {
                                 // @ts-ignore
                                 elem.emit('fail', ...data);
                             }
-                        },
-                        close() {
+                        }, close() {
                             layer.close(layIndex);
-                        },
-                        state() {
+                        }, state() {
                             return state;
-                        },
-                        iframeAuto() {
+                        }, iframeAuto() {
                             if (state == 'restore') {
                                 layer.iframeAuto(index);
                             }
-                        },
-                        assign: setting.assign || null,
-                        callWindow: callWindow,
-                        elem: elem,
-                        index: index,
-                        layer: layer
+                        }, assign: setting.assign || null, callWindow: callWindow, elem: elem, index: index, layer: layer
                     };
                     dialogWindow.dialogHandle = handle;
                 }

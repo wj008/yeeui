@@ -45,14 +45,10 @@ class YeeDatatable {
         this.baseUrl = table.data('url') || '';
         this.captureUrl = table.data('capture-url') === void 0 ? !!table.data('auto-url') : false;
         this.autoLoad = !!table.data('auto-load');
-        this.marginBtm = parseInt(table.data('margin-bottom') || 0);
         this.resize = !!table.data('resize');
         this.headFixed = !!table.data('head-fixed');
         this.leftFixed = parseInt(table.data('left-fixed') || 0);
         this.rightFixed = parseInt(table.data('right-fixed') || 0);
-        if (isNaN(this.marginBtm)) {
-            this.marginBtm = 0;
-        }
         if (isNaN(this.leftFixed)) {
             this.leftFixed = 0;
         }
@@ -193,15 +189,6 @@ class YeeDatatable {
                     that.initTable();
                 });
             });
-            table.on('setHeight', function (ev, height) {
-                let headH = 0;
-                if (that.dtHeader) {
-                    headH = that.dtHeader.outerHeight();
-                }
-                let h = height - headH;
-                that.dtMain.height(h);
-                that.updateFixedR();
-            });
             if (that.autoLoad) {
                 let showMessage = !!table.data('show-message');
                 that.load(that.baseUrl, null, showMessage).then(function () {
@@ -213,32 +200,6 @@ class YeeDatatable {
         }).catch(function (err) {
             console.error(err);
         });
-    }
-
-    autoHeight() {
-        if (!isNaN(this.marginBtm) && this.marginBtm > 0) {
-            let winHeight = $(window).height();
-            let bodyHeight = $(document.body).height();
-            let boxHeight = this.dtBox.outerHeight();
-            let otherHeight = bodyHeight - boxHeight;
-            let newBoxHeight = (winHeight - this.marginBtm) - otherHeight;
-            let headH = 0;
-            if (this.dtHeader) {
-                headH = this.dtHeader.outerHeight();
-            }
-            let h = newBoxHeight - headH;
-            this.dtMain.height(h);
-        }
-    }
-
-    /**
-     * 设置底边距离
-     * @param height
-     */
-    marginBottom(height) {
-        this.marginBtm = height;
-        this.autoHeight();
-        this.updateFixedR();
     }
 
     /**
@@ -358,15 +319,12 @@ class YeeDatatable {
         this.updateRowHeight();
         if (!this.isInitEvent) {
             $(window).on('resize', function () {
-                that.autoHeight();
                 that.updateFixedR();
             });
             table.on('resize', function () {
-                that.autoHeight();
                 that.updateFixedR();
             });
             setTimeout(function () {
-                that.autoHeight();
                 that.updateFixedR();
                 //.log('yee-dt-render');
                 that.dtBox.removeClass('yee-dt-render');
