@@ -16,6 +16,7 @@ class YeeDialog {
             let info = Yee.parseUrl(url);
             Yee.carryData(carry, info.param);
             // @ts-ignore
+
             if (qel.emit('openDialog', info) === false) {
                 return false;
             }

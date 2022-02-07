@@ -1,10 +1,18 @@
 class YeeChoice {
     constructor(elem) {
         let qel = this.qel = $(elem);
-        let ajax = qel.instance('ajax');
-        let dialog = qel.instance('dialog');
+        let that = this;
+        setTimeout(function () {
+            that.init();
+        }, 10)
+    }
+
+    init() {
+        let qel = this.qel;
         let that = this;
         let name = this.name = qel.data('name') || 'choice';
+        let ajax = qel.instance('ajax');
+        let dialog = qel.instance('dialog');
         if (ajax) {
             qel.on('before', function (ev, info) {
                 let value = that.getValue();
