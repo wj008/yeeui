@@ -947,7 +947,7 @@ class YeePicker extends YeeEvent {
                 setMinute(minute);
             }
             if (second != dateSecond) {
-                setSecond(minute);
+                setSecond(second);
             }
             changeDateTime();
         };
