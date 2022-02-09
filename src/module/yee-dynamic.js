@@ -34,14 +34,24 @@ class YeeDynamic {
             switch (type) {
                 case 'show':
                     $(rowId).show();
-                    $(rowId + ' :input').data('valid-disabled', false);
+                    $(rowId + ' :input').each(function (i, el) {
+                        $(el).data('valid-disabled', false);
+                    });
                     break;
                 case 'hide':
                     $(rowId).hide();
-                    $(rowId + ' :input').data('valid-disabled', true);
-                    if (typeof ($(rowId + ' :input')['setDefault']) == 'function') {
-                        $(rowId + ' :input')['setDefault']();
+                    let offFunc = function () {
+                        let items = $(rowId + ' :input');
+                        items.each(function (i, el) {
+                            let qe = $(el);
+                            qe.data('valid-disabled', true);
+                            if (typeof (qe['setDefault']) == 'function') {
+                                qe.setDefault();
+                            }
+                        });
                     }
+                    offFunc();
+                    setTimeout(offFunc, 10);
                     break;
                 case 'on':
                     $(boxId).data('valid-disabled', false);
