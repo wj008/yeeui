@@ -534,6 +534,7 @@ class YeeUpload {
             }, false);
             //监听完成
             xhr.addEventListener("load", function (evt) {
+                form.get(0).reset();
                 if (that.qel.emit('uploadLoad', evt.target, param) === false) {
                     return false;
                 }
@@ -549,6 +550,10 @@ class YeeUpload {
                     }
                 }
             }, false);
+            xhr.addEventListener('error', function (ev) {
+                form.get(0).reset();
+                Yee.alert('上传失败，服务器出现了些状况');
+            });
             xhr.open("POST", url);
             xhr.send(fd);
         };
