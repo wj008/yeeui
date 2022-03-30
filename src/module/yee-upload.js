@@ -169,6 +169,9 @@ class YeeUpload {
         button.width(btnWidth).height(btnHeight);
         let delBtn = $('<a href="javascript:;"></a>').addClass('img-del').hide().appendTo(btnWrap);
         delBtn.on('click', function () {
+            if (qel.is(':disabled')) {
+                return false;
+            }
             qel.val('');
             button.empty();
             button.removeClass('img-bgnone');
@@ -184,7 +187,9 @@ class YeeUpload {
                 YeeUpload.createImage(data.url, data.btnWidth, data.btnHeight).then(function (img) {
                     button.empty().append(img);
                     button.addClass('img-bgnone');
-                    delBtn.show();
+                    if (!qel.is(':disabled')) {
+                        delBtn.show();
+                    }
                 });
             } else {
                 button.empty();
