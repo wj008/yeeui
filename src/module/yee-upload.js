@@ -17,10 +17,15 @@ class YeeUpload {
         if (accept !== void 0 && accept != '') {
             field.attr('accept', accept);
         }
-        field.on('change', function () {
-            that.upload();
-            return false;
-        });
+        let disabled = qel.prop('disabled');
+        if (disabled) {
+            field.prop('disabled', true);
+        } else {
+            field.on('change', function () {
+                that.upload();
+                return false;
+            });
+        }
         //文件上传
         if (mode == 'file') {
             that.upFile();
@@ -203,6 +208,9 @@ class YeeUpload {
             }
         });
         button.on('click', function () {
+            if (qel.is(':disabled')) {
+                return false;
+            }
             field.trigger('click');
             if (typeof (qel.setDefault) == 'function') {
                 qel.setDefault();
