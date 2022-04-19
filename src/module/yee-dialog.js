@@ -43,8 +43,14 @@ class YeeDialog {
         let windowHeight = 0;
         let timer = null;
         let layIndex = layer.open({
-            type: 2, title: setting.title || '网页对话框', // @ts-ignore
-            anim: setting.anim, area: [setting.width + 'px', setting.height + 'px'], maxmin: setting.maxmin === void 0 ? true : setting.maxmin, content: url, //关闭触发消息
+            type: 2,
+            title: setting.title || '网页对话框',
+            shade: setting.shade === void 0 ? 0.5 : setting.shade,
+            shadeClose: setting.shadeClose === void 0 ? false : setting.shadeClose,
+            anim: setting.anim,
+            area: [setting.width + 'px', setting.height + 'px'],
+            maxmin: setting.maxmin === void 0 ? true : setting.maxmin,
+            content: url, //关闭触发消息
             end: function () {
                 let data = null;
                 if (timer) {
@@ -64,16 +70,20 @@ class YeeDialog {
                     iframe.remove();
                     iframe = null;
                 }
-            }, full: function () {
+            },
+            full: function () {
                 state = 'full';
                 if (iframe) {
                     iframe.css('height', '100%');
                 }
-            }, min: function () {
+            },
+            min: function () {
                 state = 'min';
-            }, restore: function () {
+            },
+            restore: function () {
                 state = 'restore';
-            }, success: function (layero, index) {
+            },
+            success: function (layero, index) {
                 dialogWindow = null;
                 iframe = layero.find('iframe');
                 if (iframe.length > 0) {
