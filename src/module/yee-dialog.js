@@ -44,7 +44,7 @@ class YeeDialog {
         let timer = null;
         let layIndex = layer.open({
             type: 2,
-            title: setting.title || '网页对话框',
+            title: setting.hideTitle ? false : (setting.title || '网页对话框'),
             shade: setting.shade === void 0 ? 0.5 : setting.shade,
             shadeClose: setting.shadeClose === void 0 ? false : setting.shadeClose,
             anim: setting.anim,
